@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>Theory Poly (Isabelle2014: August 2014)</title>
+<link media="all" rel="stylesheet" type="text/css" href="isabelle.css"/>
+</head>
+
+<body>
+<div class="head"><h1>Theory Poly</h1>
+
+<span class="command">theory</span> <span class="name">Poly</span><br/>
+<span class="keyword">imports</span> <a href="../../HOL/HOL/Main.html"><span class="name">Main</span></a><br/>
+
+</div>
+<div class="source">
+<pre><span class="command">theory</span> Poly
+<span class="keyword2">imports</span> Main
+<span class="keyword2">begin</span>
+
+<span class="command">section</span> <span class="verbatim">{* Poly *}</span>
+<span class="command">subsection</span> <span class="verbatim">{* Polymorphism *}</span>
+<span class="command">subsubsection</span> <span class="verbatim">{* Polymorphic Lists *}</span>
+
+<span class="command">datatype</span> <span class="tfree">&#39;a</span> list <span class="delimiter">=</span> nil <span class="delimiter">|</span> cons <span class="tfree">&#39;a</span> <span class="string">&quot;&#39;a list&quot;</span>
+
+<span class="command">no_notation</span>
+  List.Nil <span class="delimiter">(</span><span class="string">&quot;[]&quot;</span><span class="delimiter">)</span>
+
+<span class="command">notation</span>
+  nil <span class="delimiter">(</span><span class="string">&quot;[]&quot;</span><span class="delimiter">)</span> <span class="keyword2">and</span>
+  cons <span class="delimiter">(</span><span class="keyword2">infixr</span> <span class="string">&quot;;&quot;</span> 60<span class="delimiter">)</span>
+
+<span class="command">no_syntax</span>
+  <span class="string">&quot;_list&quot;</span> <span class="delimiter">::</span> <span class="string">&quot;args =&gt; &#39;a list&quot;</span> <span class="delimiter">(</span><span class="string">&quot;[(_)]&quot;</span><span class="delimiter">)</span>
+
+<span class="command">syntax</span>
+  <span class="string">&quot;_polylist&quot;</span> <span class="delimiter">::</span> <span class="string">&quot;args =&gt; &#39;a list&quot;</span> <span class="delimiter">(</span><span class="string">&quot;[(_)]&quot;</span><span class="delimiter">)</span>
+
+<span class="command">translations</span>
+  <span class="string">&quot;[x; xs]&quot;</span> <span class="delimiter">==</span> <span class="string">&quot;x;[xs]&quot;</span>
+  <span class="string">&quot;[x]&quot;</span> <span class="delimiter">==</span> <span class="string">&quot;x;[]&quot;</span>
+
+<span class="command">value</span> <span class="string">&quot;nil&quot;</span>
+  <span class="comment">(* ==&gt; &quot;nil&quot; :: &quot;&#39;a Poly.list&quot; *)</span>
+<span class="command">value</span> <span class="string">&quot;cons&quot;</span>
+  <span class="comment">(* ==&gt; &quot;cons&quot; :: &quot;&#39;a =&gt; &#39;a Poly.list =&gt; &#39;a Poly.list&quot; *)</span>
+
+<span class="command">value</span> <span class="string">&quot;cons 2 (cons (1 :: nat) nil)&quot;</span>
+  <span class="comment">(* ==&gt; &quot;cons (Suc (Suc 0)) (cons (Suc 0) nil)&quot; :: &quot;nat Poly.list&quot; *)</span>
+
+<span class="command">fun</span> length <span class="delimiter">::</span> <span class="string">&quot;&#39;a list =&gt; nat&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;length nil = 0&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;length (cons h t) = Suc (length t)&quot;</span>
+
+<span class="command">lemma</span> test_length1<span class="delimiter">:</span> <span class="string">&quot;length (cons 1 (cons 2 nil)) = 2&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_length2<span class="delimiter">:</span> <span class="string">&quot;length (cons True nil) = 1&quot;</span> <span class="command">by</span> simp
+
+<span class="command">fun</span> app <span class="delimiter">::</span> <span class="string">&quot;&#39;a list =&gt; &#39;a list =&gt; &#39;a list&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;app nil l2 = l2&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;app (cons h t) l2 = cons h (app t l2)&quot;</span>
+
+<span class="command">fun</span> snoc <span class="delimiter">::</span> <span class="string">&quot;&#39;a list =&gt; &#39;a =&gt; &#39;a list&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;snoc nil v = cons v nil&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;snoc (cons h t) v = cons h (snoc t v)&quot;</span>
+
+<span class="command">fun</span> rev <span class="delimiter">::</span> <span class="string">&quot;&#39;a list =&gt; &#39;a list&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;rev nil = nil&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;rev (cons h t) = snoc (rev t) h&quot;</span>
+
+<span class="command">lemma</span> test_rev1<span class="delimiter">:</span> <span class="string">&quot;rev (cons 1 (cons 2 nil)) = (cons 2 (cons 1 nil))&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_rev2<span class="delimiter">:</span> <span class="string">&quot;rev nil = nil&quot;</span> <span class="command">by</span> simp
+
+<span class="comment">(* Exercise: 2 stars (mumble_grumble) *)</span>
+
+<span class="command">datatype</span> mumble <span class="delimiter">=</span> a&#39; <span class="delimiter">|</span> b&#39; mumble nat <span class="delimiter">|</span> c&#39;
+<span class="command">datatype</span> <span class="tfree">&#39;a</span> grumble <span class="delimiter">=</span> d&#39; mumble <span class="delimiter">|</span> e&#39; <span class="tfree">&#39;a</span>
+
+<span class="command">term</span> <span class="string">&quot;d&#39; (b&#39; a&#39; 5)&quot;</span>
+  <span class="comment">(* ==&gt; &quot;d&#39; (b&#39; a&#39; 5)&quot; :: &quot;&#39;a grumble&quot; *)</span>
+<span class="command">term</span> <span class="string">&quot;d&#39; (b&#39; a&#39; 5) :: mumble grumble&quot;</span>
+  <span class="comment">(* ==&gt; &quot;d&#39; (b&#39; a&#39; 5)&quot; :: &quot;mumble grumble&quot; *)</span>
+<span class="command">term</span> <span class="string">&quot;d&#39; (b&#39; a&#39; 5) :: bool grumble&quot;</span>
+  <span class="comment">(* ==&gt; &quot;d&#39; (b&#39; a&#39; 5)&quot; :: &quot;bool grumble&quot; *)</span>
+<span class="command">term</span> <span class="string">&quot;e&#39; True&quot;</span>
+  <span class="comment">(* ==&gt; &quot;e&#39; True&quot; :: &quot;bool grumble&quot; *)</span>
+<span class="command">term</span> <span class="string">&quot;e&#39; (b&#39; c&#39; 0) :: mumble grumble&quot;</span>
+  <span class="comment">(* ==&gt; &quot;e&#39; (b&#39; c&#39; 0)&quot; :: &quot;mumble grumble&quot; *)</span>
+<span class="comment">(* term &quot;e&#39; (b&#39; c&#39; 0) :: bool grumble&quot; ==&gt; error *)</span>
+<span class="command">term</span> <span class="string">&quot;c&#39;&quot;</span>
+  <span class="comment">(* ==&gt; &quot;c&#39;&quot; :: &quot;mumble&quot; *)</span>
+
+<span class="comment">(* Exercise: 2 stars (baz_num_elts) *)</span>
+
+<span class="comment">(*
+datatype baz = x baz | y baz bool
+
+baz has no element
+*)</span>
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Type Annotation Inference *}</span>
+<span class="command">subsubsection</span> <span class="verbatim">{* Type Argument Synthesis *}</span>
+<span class="command">subsubsection</span> <span class="verbatim">{* Implicit Arguments *}</span>
+<span class="command">subsubsection</span> <span class="verbatim">{* Exercises: Polymorphic Lists *}</span>
+
+<span class="comment">(* Exercise: 2 stars, optional (poly_exercises) *)</span>
+
+<span class="command">fun</span> repeat <span class="delimiter">::</span> <span class="string">&quot;&#39;a =&gt; nat =&gt; &#39;a list&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;repeat x 0 = nil&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;repeat x (Suc n) = cons x (repeat x n)&quot;</span>
+
+<span class="command">lemma</span> test_repeat1<span class="delimiter">:</span> <span class="string">&quot;repeat True 2 = cons True (cons True nil)&quot;</span>
+<span class="command">proof</span> -
+  <span class="command">have</span> 2<span class="delimiter">:</span> <span class="string">&quot;2 = Suc 1&quot;</span> <span class="command">by</span> simp
+  <span class="command">show</span> <span class="var">?thesis</span> <span class="command">by</span> <span class="delimiter">(</span>simp add<span class="delimiter">:</span> 2<span class="delimiter">)</span>
+<span class="command">qed</span>
+
+<span class="command">theorem</span> nil_app<span class="delimiter">:</span> <span class="string">&quot;&forall;l::&#39;a list. app nil l = l&quot;</span> <span class="command">by</span> simp
+<span class="command">theorem</span> rev_snoc<span class="delimiter">:</span> <span class="string">&quot;&forall;v :: &#39;a. &forall;s :: &#39;a list. rev (snoc s v) = cons v (rev s)&quot;</span>
+<span class="command">apply</span> auto <span class="command">by</span> <span class="delimiter">(</span>induct_tac s<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+
+<span class="command">theorem</span> rev_involutive<span class="delimiter">:</span> <span class="string">&quot;&forall;l :: &#39;a list. rev (rev l) = l&quot;</span>
+<span class="command">apply</span> auto <span class="command">by</span> <span class="delimiter">(</span>induct_tac l<span class="delimiter">,</span>  auto simp add<span class="delimiter">:</span> rev_snoc<span class="delimiter">)</span>
+
+<span class="command">theorem</span> snoc_with_append<span class="delimiter">:</span> <span class="string">&quot;&forall;l1 l2 :: &#39;a list. &forall;v :: &#39;a. snoc (app l1 l2) v = app l1 (snoc l2 v)&quot;</span>
+<span class="command">apply</span> auto <span class="command">by</span> <span class="delimiter">(</span>induct_tac l1<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Polymorphic Pairs *}</span>
+
+<span class="command">datatype</span> <span class="delimiter">(</span><span class="tfree">&#39;a</span><span class="delimiter">,</span><span class="tfree">&#39;b</span><span class="delimiter">)</span> prod <span class="delimiter">=</span> pair <span class="tfree">&#39;a</span> <span class="tfree">&#39;b</span>
+
+<span class="command">no_type_notation</span>
+  Product_Type.prod  <span class="delimiter">(</span><span class="string">&quot;(_ &times;/ _)&quot;</span> <span class="delimiter">[</span>21<span class="delimiter">,</span> 20<span class="delimiter">]</span> 20<span class="delimiter">)</span>
+
+<span class="command">type_notation</span>
+  prod  <span class="delimiter">(</span><span class="string">&quot;_ &times; _&quot;</span><span class="delimiter">)</span>
+
+<span class="command">primrec</span> fst <span class="delimiter">::</span> <span class="string">&quot;(&#39;a &times; &#39;b) =&gt; &#39;a&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;fst (pair x _) = x&quot;</span>
+<span class="command">primrec</span> snd <span class="delimiter">::</span> <span class="string">&quot;(&#39;a &times; &#39;b) =&gt; &#39;b&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;snd (pair _ y) = y&quot;</span>
+
+<span class="command">fun</span> combine <span class="delimiter">::</span> <span class="string">&quot;&#39;a list =&gt; &#39;b list =&gt; (&#39;a &times; &#39;b) list&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;combine nil _ = nil&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;combine _ nil = nil&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;combine (cons x xs) (cons y ys) = cons (pair x y) (combine xs ys)&quot;</span>
+
+<span class="comment">(* Exercise: 1 star, optional (combine_checks) *)</span>
+
+<span class="command">value</span> <span class="string">&quot;combine [1;2] [false;false;true;true]&quot;</span>
+  <span class="comment">(* ==&gt; &quot;[pair 1 false ; pair (1 + 1) false]&quot; :: &quot;&#39;a &times; &#39;b Poly.list&quot; *)</span>
+
+<span class="comment">(* Exercise: 2 stars (split) *)</span>
+
+<span class="command">fun</span> pair_map <span class="delimiter">::</span> <span class="string">&quot;((&#39;a =&gt; &#39;c) &times; (&#39;b =&gt; &#39;d)) =&gt; (&#39;a &times; &#39;b) =&gt; (&#39;c &times; &#39;d)&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;pair_map (pair f g) (pair x y) = pair (f x) (g y)&quot;</span>
+
+<span class="command">fun</span> split <span class="delimiter">::</span> <span class="string">&quot;(&#39;a &times; &#39;b) list =&gt; ((&#39;a list) &times; (&#39;b list))&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;split nil = pair nil nil&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;split (pair x y ; zs) = pair_map (pair (cons x) (cons y)) (split zs)&quot;</span>
+
+<span class="command">lemma</span> test_split<span class="delimiter">:</span> <span class="string">&quot;split [pair 1 false; pair 2 false] = pair [1;2] [false;false]&quot;</span> <span class="command">by</span> simp
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Polymorphic Options *}</span>
+
+<span class="command">datatype</span> <span class="tfree">&#39;a</span> option <span class="delimiter">=</span> Some <span class="tfree">&#39;a</span> <span class="delimiter">|</span> None
+
+<span class="command">fun</span> index <span class="delimiter">::</span> <span class="string">&quot;nat =&gt; &#39;a list =&gt; &#39;a option&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;index _ nil = None&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;index n (cons a l) = (if n = 0 then Some a else index (n - 1) l)&quot;</span>
+
+<span class="command">lemma</span> test_index1<span class="delimiter">:</span> <span class="string">&quot;index 0 [4;5;6;7] = Some 4&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_index2<span class="delimiter">:</span> <span class="string">&quot;index 1 [[1];[2]] = Some [2]&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_index3<span class="delimiter">:</span> <span class="string">&quot;index 2 [True] = None&quot;</span> <span class="command">by</span> simp
+
+<span class="comment">(* Exercise: 1 star, optional (hd_opt_poly) *)</span>
+
+<span class="command">fun</span> hd_opt <span class="delimiter">::</span> <span class="string">&quot;&#39;a list =&gt; &#39;a option&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;hd_opt nil = None&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;hd_opt (h ; t) = Some h&quot;</span>
+
+<span class="command">term</span> <span class="string">&quot;hd_opt&quot;</span>
+  <span class="comment">(* ==&gt; &quot;hd_opt&quot; :: &quot;&#39;a Poly.list =&gt; &#39;a Poly.option&quot; *)</span>
+
+<span class="command">lemma</span> test_hd_opt1<span class="delimiter">:</span> <span class="string">&quot;hd_opt [1;2] = Some 1&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_hd_opt2<span class="delimiter">:</span> <span class="string">&quot;hd_opt [[1];[2]] = Some [1]&quot;</span> <span class="command">by</span> simp
+
+<span class="command">subsection</span> <span class="verbatim">{* Functions as Data *}</span>
+<span class="command">subsubsection</span> <span class="verbatim">{* Higher-Order Functions *}</span>
+
+<span class="command">fun</span> doit3times <span class="delimiter">::</span> <span class="string">&quot;(&#39;a =&gt; &#39;a) =&gt; &#39;a =&gt; &#39;a&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;doit3times f x = f (f (f x))&quot;</span>
+
+<span class="command">term</span> <span class="string">&quot;doit3times&quot;</span>
+  <span class="comment">(* ==&gt; &quot;doit3times&quot; :: &quot;(&#39;a =&gt; &#39;a) =&gt; &#39;a =&gt; &#39;a&quot; *)</span>
+
+<span class="command">lemma</span> test_doit3times<span class="delimiter">:</span> <span class="string">&quot;doit3times (&lambda;(x :: nat). x - 2) 9 = 3&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_doit3times&#39;<span class="delimiter">:</span> <span class="string">&quot;doit3times (&lambda;x. &not; x) True = False&quot;</span> <span class="command">by</span> simp
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Partial Application *}</span>
+
+<span class="command">definition</span> <span class="string">&quot;plus3 = plus (3 :: nat)&quot;</span>
+<span class="command">term</span> <span class="string">&quot;plus3&quot;</span>
+  <span class="comment">(* ==&gt; &quot;plus3&quot; :: &quot;nat =&gt; nat&quot; *)</span>
+
+<span class="command">lemma</span> test_plus3<span class="delimiter">:</span> <span class="string">&quot;plus3 4 = 7&quot;</span> <span class="command">unfolding</span> plus3_def <span class="command">by</span> simp
+<span class="command">lemma</span> test_plus3&#39;<span class="delimiter">:</span> <span class="string">&quot;doit3times plus3 0 = 9&quot;</span> <span class="command">unfolding</span> plus3_def <span class="command">by</span> simp
+<span class="command">lemma</span> test_plus3&#39;&#39; <span class="delimiter">:</span> <span class="string">&quot;doit3times (plus (3 :: nat)) 0 = 9&quot;</span> <span class="command">by</span> simp
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Digression: Currying *}</span>
+
+<span class="comment">(* Exercise: 2 stars, advanced (currying) *)</span>
+
+<span class="command">fun</span> prod_curry <span class="delimiter">::</span> <span class="string">&quot;((&#39;a &times; &#39;b) =&gt; &#39;c) =&gt; &#39;a =&gt; &#39;b =&gt; &#39;c&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;prod_curry f x y = f (pair x y)&quot;</span>
+<span class="command">fun</span> prod_uncurry <span class="delimiter">::</span> <span class="string">&quot;(&#39;a =&gt; &#39;b =&gt; &#39;c) =&gt; (&#39;a &times; &#39;b) =&gt; &#39;c&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;prod_uncurry f (pair x y) = f x y&quot;</span>
+
+<span class="command">term</span> prod_curry
+  <span class="comment">(* &quot;prod_curry&quot; :: &quot;(&#39;a &times; &#39;b =&gt; &#39;c) =&gt; &#39;a =&gt; &#39;b =&gt; &#39;c&quot; *)</span>
+<span class="command">term</span> prod_uncurry
+  <span class="comment">(* &quot;prod_uncurry&quot; :: &quot;(&#39;a =&gt; &#39;b =&gt; &#39;c) =&gt; &#39;a &times; &#39;b =&gt; &#39;c&quot; *)</span>
+
+<span class="command">theorem</span> uncurry_curry<span class="delimiter">:</span> <span class="string">&quot;&forall;(f :: &#39;a =&gt; &#39;b =&gt; &#39;c) x y. prod_curry (prod_uncurry f) x y = f x y&quot;</span> <span class="command">by</span> simp
+<span class="command">theorem</span> curry_uncurry<span class="delimiter">:</span> <span class="string">&quot;&forall;(f :: (&#39;a &times; &#39;b) =&gt; &#39;c) (p :: &#39;a &times; &#39;b). prod_uncurry (prod_curry f) p = f p&quot;</span>
+<span class="command">apply</span> auto <span class="command">by</span> <span class="delimiter">(</span>case_tac p<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Filter *}</span>
+
+<span class="command">fun</span> filter <span class="delimiter">::</span> <span class="string">&quot;(&#39;a =&gt; bool) =&gt; &#39;a list =&gt; &#39;a list&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;filter test nil = nil&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;filter test (h;t) = (if test h then h ; (filter test t) else filter test t)&quot;</span>
+
+<span class="command">lemma</span> test_filter1<span class="delimiter">:</span> <span class="string">&quot;filter (&lambda;(x :: nat). x mod 2 = 0) [1;2;3;4] = [2;4]&quot;</span> <span class="command">by</span> simp
+
+<span class="command">fun</span> length_is_1 <span class="delimiter">::</span> <span class="string">&quot;&#39;a list =&gt; bool&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;length_is_1 l = (length l = 1)&quot;</span>
+
+<span class="command">lemma</span> test_filter2<span class="delimiter">:</span> <span class="string">&quot;filter length_is_1 [[1;2];[3];[4];[5;6;7];[];[8]] = [[3];[4];[8]]&quot;</span> <span class="command">by</span> simp
+
+<span class="command">fun</span> countoddmembers&#39; <span class="delimiter">::</span> <span class="string">&quot;nat list =&gt; nat&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;countoddmembers&#39; l = length (filter (&lambda;x. x mod 2 = 1) l)&quot;</span>
+
+<span class="command">lemma</span> test_countoddmembers&#39;1<span class="delimiter">:</span> <span class="string">&quot;countoddmembers&#39; [1;0;3;1;4;5] = 4&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_countoddmembers&#39;2<span class="delimiter">:</span> <span class="string">&quot;countoddmembers&#39; [0;2;4] = 0&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_countoddmembers&#39;3<span class="delimiter">:</span> <span class="string">&quot;countoddmembers&#39; nil = 0&quot;</span> <span class="command">by</span> simp
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Anonymous Functions *}</span>
+
+<span class="command">lemma</span> test_anon_fun&#39;<span class="delimiter">:</span> <span class="string">&quot;doit3times (&lambda;(n :: nat). n * n) 2 = 256&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_filter2&#39;<span class="delimiter">:</span> <span class="string">&quot;filter (&lambda;l. length l = 1) [[1; 2];[3];[4];[5;6;7];[];[8]] = [[3];[4];[8]]&quot;</span> <span class="command">by</span> simp
+
+<span class="comment">(* Exercise: 2 stars (filter_even_gt7) *)</span>
+
+<span class="command">fun</span> filter_even_gt7 <span class="delimiter">::</span> <span class="string">&quot;nat list =&gt; nat list&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;filter_even_gt7 l = filter (&lambda;x. x mod 2 = 0 &amp; x &ge; 7) l&quot;</span>
+
+<span class="command">lemma</span> test_filter_even_gt7_1<span class="delimiter">:</span> <span class="string">&quot;filter_even_gt7 [1;2;6;9;10;3;12;8] = [10;12;8]&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_filter_even_gt7_2<span class="delimiter">:</span> <span class="string">&quot;filter_even_gt7 [5;2;6;19;129] = []&quot;</span> <span class="command">by</span> simp
+
+<span class="comment">(* Exercise: 3 stars (partition) *)</span>
+<span class="command">fun</span> partition <span class="delimiter">::</span> <span class="string">&quot;(&#39;a =&gt; bool) =&gt; &#39;a list =&gt; ((&#39;a list) &times; (&#39;a list))&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;partition f xs = pair (filter f xs) (filter (&lambda;x. &not; f x) xs)&quot;</span>
+
+<span class="command">lemma</span> test_partition1<span class="delimiter">:</span> <span class="string">&quot;partition (&lambda;(x :: nat). x mod 2 = 1) [1;2;3;4;5] = pair [1;3;5] [2;4]&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_partition2<span class="delimiter">:</span> <span class="string">&quot;partition (&lambda;_. False) [5;9;0] = pair [] [5;9;0]&quot;</span> <span class="command">by</span> simp
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Map *}</span>
+
+<span class="command">fun</span> map <span class="delimiter">::</span> <span class="string">&quot;(&#39;a =&gt; &#39;b) =&gt; &#39;a list =&gt; &#39;b list&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;map f nil = nil&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;map f (h;t) = f h ; map f t&quot;</span>
+
+<span class="command">lemma</span> test_map1<span class="delimiter">:</span> <span class="string">&quot;map (&lambda;(x :: nat). x + 3) [2;0;2] = [5;3;5]&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_map2<span class="delimiter">:</span> <span class="string">&quot;map (&lambda;(x :: nat). x mod 2 = 1) [2;1;2;5] = [False;True;False;True]&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_map3<span class="delimiter">:</span> <span class="string">&quot;map (&lambda;(n :: nat). [(n mod 2 = 0) ; (n mod 2 = 1)]) [2;1;2;5] = [[True;False];[False;True];[True;False];[False;True]]&quot;</span>
+<span class="command">by</span> simp
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Map for options *}</span>
+
+<span class="comment">(* Exercise: 3 stars (map_rev) *)</span>
+
+<span class="command">lemma</span> map_rev_lem<span class="delimiter">:</span> <span class="string">&quot;!!f l a. map f (snoc l a) = snoc (map f l) (f a)&quot;</span>
+<span class="command">by</span> <span class="delimiter">(</span>induct_tac l<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+
+<span class="command">theorem</span> map_rev<span class="delimiter">:</span> <span class="string">&quot;&forall;(f :: &#39;a =&gt; &#39;b) (l :: &#39;a list). map f (rev l) = rev (map f l)&quot;</span>
+<span class="command">apply</span> auto <span class="command">by</span> <span class="delimiter">(</span>induct_tac l<span class="delimiter">,</span> auto simp add<span class="delimiter">:</span> map_rev_lem<span class="delimiter">)</span>
+
+<span class="comment">(* Exercise: 2 stars (flat_map) *)</span>
+
+<span class="command">fun</span> flat_map <span class="delimiter">::</span> <span class="string">&quot;(&#39;a =&gt; &#39;b list) =&gt; &#39;a list =&gt; &#39;b list&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;flat_map f nil = nil&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;flat_map f (h;t) = app (f h) (flat_map f t)&quot;</span>
+
+<span class="command">lemma</span> test_flat_map1<span class="delimiter">:</span> <span class="string">&quot;flat_map (&lambda;n. [n;n;n]) [1;5;4] = [1; 1; 1; 5; 5; 5; 4; 4; 4]&quot;</span> <span class="command">by</span> simp
+
+<span class="command">fun</span> option_map <span class="delimiter">::</span> <span class="string">&quot;(&#39;a =&gt; &#39;b) =&gt; &#39;a option =&gt; &#39;b option&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;option_map f None = None&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;option_map f (Some a) = Some (f a)&quot;</span>
+
+<span class="comment">(* Exercise: 2 stars, optional (implicit_args) *)</span>
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Fold *}</span>
+
+<span class="command">fun</span> fold <span class="delimiter">::</span> <span class="string">&quot;(&#39;a =&gt; &#39;b =&gt; &#39;b) =&gt; &#39;a list =&gt; &#39;b =&gt; &#39;b&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;fold f nil b = b&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;fold f (h;t) b = f h (fold f t b)&quot;</span>
+
+<span class="command">term</span> <span class="string">&quot;fold (&lambda;x y. x &and; y)&quot;</span>
+  <span class="comment">(* ==&gt; &quot;Poly.fold op &and;&quot; :: &quot;bool Poly.list =&gt; bool =&gt; bool&quot; *)</span>
+
+<span class="command">lemma</span> fold_example1<span class="delimiter">:</span> <span class="string">&quot;fold (&lambda;(x :: nat) y. x * y) [1;2;3;4] 1 = 24&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> fold_example2<span class="delimiter">:</span> <span class="string">&quot;fold (&lambda;x y. x &and; y) [True;True;False;True] True = False&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> fold_example3<span class="delimiter">:</span> <span class="string">&quot;fold app [[1];[];[2;3];[4]] [] = [1;2;3;4]&quot;</span> <span class="command">by</span> simp
+
+<span class="comment">(* Exercise: 1 star, advanced (fold_types_different) *)</span>
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Functions For Constructing Functions *}</span>
+
+<span class="command">fun</span> constfun <span class="delimiter">::</span> <span class="string">&quot;&#39;a =&gt; nat =&gt; &#39;a&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;constfun x = (&lambda;_. x)&quot;</span>
+<span class="command">fun</span> ftrue <span class="keyword2">where</span>
+  <span class="string">&quot;ftrue x = constfun True x&quot;</span>
+
+<span class="command">lemma</span> constfun_example1<span class="delimiter">:</span> <span class="string">&quot;ftrue 0 = True&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> constfun_example2<span class="delimiter">:</span> <span class="string">&quot;(constfun 5) 99 = 5&quot;</span> <span class="command">by</span> simp
+
+<span class="command">fun</span> override <span class="delimiter">::</span> <span class="string">&quot;(nat =&gt; &#39;a) =&gt; nat =&gt; &#39;a =&gt; nat =&gt; &#39;a&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;override f k x = (&lambda;(k&#39; :: nat). if k = k&#39; then x else f k&#39;)&quot;</span>
+<span class="command">fun</span> fmostlytrue <span class="keyword2">where</span>
+  <span class="string">&quot;fmostlytrue x = override (override ftrue 1 False) 3 False x&quot;</span>
+
+<span class="command">lemma</span> override_example1<span class="delimiter">:</span> <span class="string">&quot;fmostlytrue 0 = True&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> override_example2<span class="delimiter">:</span> <span class="string">&quot;fmostlytrue 1 = False&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> override_example3<span class="delimiter">:</span> <span class="string">&quot;fmostlytrue 2 = True&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> override_example4<span class="delimiter">:</span> <span class="string">&quot;fmostlytrue 3 = False&quot;</span> <span class="command">by</span> simp
+
+<span class="comment">(* Exercise: 1 star (override_example) *)</span>
+
+<span class="command">theorem</span> override_example<span class="delimiter">:</span> <span class="string">&quot;&forall;(b::bool). (override (constfun b) 3 True) 2 = b&quot;</span> <span class="command">by</span> simp
+
+<span class="command">subsection</span> <span class="verbatim">{* The unfold Tactic *}</span>
+
+<span class="command">theorem</span> unfold_example<span class="delimiter">:</span> <span class="string">&quot;&forall;(m :: nat) n. 3 + n = m --&gt; plus3 n + 1 = m + 1&quot;</span>
+<span class="command">unfolding</span> plus3_def <span class="command">by</span> simp
+
+<span class="command">theorem</span> override_eq<span class="delimiter">:</span> <span class="string">&quot;&forall;x k (f :: nat =&gt; &#39;a). (override f k x) k = x&quot;</span> <span class="command">by</span> simp
+<span class="command">theorem</span> override_neq<span class="delimiter">:</span> <span class="string">&quot;&forall;x1 x2 k1 k2 (f :: nat =&gt; &#39;a). f k1 = x1 --&gt; k2 &ne; k1 --&gt; (override f k2 x2) k1 = x1&quot;</span> <span class="command">by</span> simp
+
+<span class="comment">(* Additional Exercises *)</span>
+
+<span class="command">fun</span> fold_length <span class="delimiter">::</span> <span class="string">&quot;&#39;a list =&gt; nat&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;fold_length l = fold (&lambda;_ n. Suc n) l 0&quot;</span>
+
+<span class="command">lemma</span> test_fold_length1<span class="delimiter">:</span> <span class="string">&quot;fold_length [4;7;0] = 3&quot;</span> <span class="command">by</span> simp
+
+<span class="command">theorem</span> fold_length_correct<span class="delimiter">:</span> <span class="string">&quot;&forall;(l :: &#39;a list). fold_length l = length l&quot;</span>
+<span class="command">apply</span> auto <span class="command">by</span> <span class="delimiter">(</span>induct_tac l<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+
+<span class="comment">(* Exercise: 3 stars (fold_map) *)</span>
+
+<span class="command">fun</span> fold_map <span class="delimiter">::</span> <span class="string">&quot;(&#39;a =&gt; &#39;b) =&gt; &#39;a list =&gt; &#39;b list&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;fold_map f xs = fold (&lambda;a b. f a ; b) xs nil&quot;</span>
+
+<span class="command">lemma</span> fold_map_correct<span class="delimiter">:</span> <span class="string">&quot;&forall;f l. fold_map f l = map f l&quot;</span>
+<span class="command">apply</span> auto <span class="command">by</span> <span class="delimiter">(</span>induct_tac l<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+
+<span class="command">end</span>
+
+</pre>
+
+</div>
+</body>
+</html>

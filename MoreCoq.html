@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>Theory MoreCoq (Isabelle2014: August 2014)</title>
+<link media="all" rel="stylesheet" type="text/css" href="isabelle.css"/>
+</head>
+
+<body>
+<div class="head"><h1>Theory MoreCoq</h1>
+
+<span class="command">theory</span> <span class="name">MoreCoq</span><br/>
+<span class="keyword">imports</span> <a href="../../HOL/HOL/Main.html"><span class="name">Main</span></a><br/>
+
+</div>
+<div class="source">
+<pre><span class="command">theory</span> MoreCoq
+<span class="keyword2">imports</span> Main
+<span class="keyword2">begin</span>
+
+<span class="command">section</span> <span class="verbatim">{* MoreCoq *}</span>
+<span class="command">subsection</span> <span class="verbatim">{* The apply Tactic *}</span>
+
+<span class="command">theorem</span> silly1<span class="delimiter">:</span> <span class="string">&quot;&forall;n m l p. n = m --&gt; [n,l] = [n,p] --&gt; [n,l] = [m,p]&quot;</span>
+<span class="command">by</span> simp
+
+<span class="command">theorem</span> silly2<span class="delimiter">:</span> <span class="string">&quot;&forall;n m l p. n = m --&gt; (&forall;q r. q = r --&gt; [q,l] = [r,p]) --&gt; [n,l] = [m,p]&quot;</span>
+<span class="command">by</span> simp
+
+<span class="command">theorem</span> silly2a<span class="delimiter">:</span> <span class="string">&quot;&forall;n m. (n,n) = (m,m) --&gt; (&forall;q r. (q,q) = (r,r) --&gt; [q] = [r]) --&gt; [n] = [m]&quot;</span>
+<span class="command">by</span> simp
+
+<span class="comment">(* Exercise: 2 stars, optional (silly_ex) *)</span>
+
+<span class="command">fun</span> evenb <span class="keyword2">where</span> <span class="string">&quot;evenb n = (n mod 2 = 0)&quot;</span>
+<span class="command">fun</span> oddb <span class="keyword2">where</span> <span class="string">&quot;oddb n = (n mod 2 = 1)&quot;</span>
+
+<span class="command">theorem</span> silly_ex<span class="delimiter">:</span> <span class="string">&quot;(&forall;(n :: nat). evenb n = True --&gt; oddb (Suc n) = True) --&gt; evenb (3 :: nat) = True --&gt; oddb 4 = True&quot;</span> <span class="command">by</span> simp
+<span class="command">theorem</span> silly3_firsttry<span class="delimiter">:</span> <span class="string">&quot;&forall;(n :: nat). True = (n = 5) --&gt; (Suc (Suc n)) = 7 = True&quot;</span> <span class="command">by</span> simp
+<span class="command">theorem</span> silly3<span class="delimiter">:</span> <span class="string">&quot;&forall;(n :: nat). True = (n = 5) --&gt; (Suc (Suc n)) = 7 = True&quot;</span> <span class="command">by</span> simp
+
+<span class="comment">(* Exercise: 3 stars (apply_exercise1) *)</span>
+
+<span class="command">theorem</span> rev_exercise1<span class="delimiter">:</span> <span class="string">&quot;&forall;l l&#39; :: nat list. l = rev l&#39; --&gt; l&#39; = rev l&quot;</span> <span class="command">by</span> simp
+
+<span class="comment">(* Exercise: 1 star, optional (apply_rewrite) *)</span>
+
+<span class="command">subsection</span> <span class="verbatim">{* The apply ... with ... Tactic *}</span>
+
+<span class="command">lemma</span> trans_eq_example<span class="delimiter">:</span> <span class="string">&quot;&forall;a b c d e f :: nat. [a,b] = [c,d] --&gt; [c,d] = [e,f] --&gt; [a,b] = [e,f]&quot;</span> <span class="command">by</span> simp
+<span class="command">theorem</span> trans_eq<span class="delimiter">:</span> <span class="string">&quot;&forall;n m o&#39;. n = m --&gt; m = o&#39; --&gt; n = o&#39;&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> trans_eq_example&#39;<span class="delimiter">:</span> <span class="string">&quot;&forall;a b c d e f :: nat. [a,b] = [c,d] --&gt; [c,d] = [e,f] --&gt; [a,b] = [e,f]&quot;</span>
+<span class="command">by</span> auto
+
+<span class="comment">(* Exercise: 3 stars, optional (apply_with_exercise) *)</span>
+
+<span class="command">fun</span> minustwo <span class="keyword2">where</span> <span class="string">&quot;minustwo n = n - 2&quot;</span>
+<span class="command">lemma</span> trans_eq_exercise<span class="delimiter">:</span> <span class="string">&quot;&forall;n m o&#39; p :: nat. m = (minustwo o&#39;) --&gt; (n + p) = m --&gt; (n + p) = (minustwo o&#39;)&quot;</span> <span class="command">by</span> simp
+
+<span class="command">subsection</span> <span class="verbatim">{* The inversion tactic *}</span>
+
+<span class="command">theorem</span> eq_add_S<span class="delimiter">:</span> <span class="string">&quot;&forall;n m :: nat. Suc n = Suc m --&gt; n = m&quot;</span> <span class="command">by</span> simp
+<span class="command">theorem</span> silly4<span class="delimiter">:</span> <span class="string">&quot;&forall;n m :: nat. [n] = [m] --&gt; n = m&quot;</span> <span class="command">by</span> simp
+<span class="command">theorem</span> silly5<span class="delimiter">:</span> <span class="string">&quot;&forall;n m o&#39; :: nat. [n,m] = [o&#39;,o&#39;] --&gt; [n] = [m]&quot;</span> <span class="command">by</span> simp
+
+<span class="comment">(* cut *)</span>
+
+<span class="command">end</span>
+
+</pre>
+
+</div>
+</body>
+</html>

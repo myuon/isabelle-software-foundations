@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>Theory Basics (Isabelle2014: August 2014)</title>
+<link media="all" rel="stylesheet" type="text/css" href="isabelle.css"/>
+</head>
+
+<body>
+<div class="head"><h1>Theory Basics</h1>
+
+<span class="command">theory</span> <span class="name">Basics</span><br/>
+<span class="keyword">imports</span> <a href="../../HOL/HOL/Main.html"><span class="name">Main</span></a><br/>
+
+</div>
+<div class="source">
+<pre><span class="command">theory</span> Basics
+<span class="keyword2">imports</span> Main
+<span class="keyword2">begin</span>
+
+<span class="command">section</span> <span class="verbatim">{* Basics *}</span>
+<span class="command">subsection</span> <span class="verbatim">{* Enumerated Types *}</span>
+<span class="command">subsubsection</span> <span class="verbatim">{* Days of the Week *}</span>
+
+<span class="command">datatype</span> day <span class="delimiter">=</span>
+  monday
+  <span class="delimiter">|</span> tuesday
+  <span class="delimiter">|</span> wednesday
+  <span class="delimiter">|</span> thursday
+  <span class="delimiter">|</span> friday
+  <span class="delimiter">|</span> saturday
+  <span class="delimiter">|</span> sunday
+
+<span class="command">definition</span> next_weekday <span class="delimiter">::</span> <span class="string">&quot;day =&gt; day&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;next_weekday d &equiv; case d of
+    monday =&gt; tuesday
+    | tuesday =&gt; wednesday
+    | wednesday =&gt; thursday
+    | friday =&gt; monday
+    | saturday =&gt; monday
+    | sunday =&gt; monday&quot;</span>
+
+<span class="command">value</span> <span class="string">&quot;next_weekday friday&quot;</span>
+  <span class="comment">(* ==&gt; &quot;monday&quot; :: &quot;day&quot; *)</span>
+<span class="command">value</span> <span class="string">&quot;next_weekday (next_weekday saturday)&quot;</span>
+  <span class="comment">(* ==&gt; &quot;tuesday&quot; :: &quot;day&quot; *)</span>
+
+<span class="command">lemma</span> test_next_weekday<span class="delimiter">:</span>
+  <span class="string">&quot;(next_weekday (next_weekday saturday)) = tuesday&quot;</span>
+<span class="command">using</span> next_weekday_def <span class="command">by</span> simp
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Booleans *}</span>
+
+<span class="command">datatype</span> bool <span class="delimiter">=</span> true <span class="delimiter">|</span> false
+
+<span class="command">fun</span> negb <span class="delimiter">::</span> <span class="string">&quot;bool =&gt; bool&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;negb true = false&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;negb false = true&quot;</span>
+
+<span class="command">fun</span> andb <span class="delimiter">::</span> <span class="string">&quot;bool =&gt; bool =&gt; bool&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;andb true b2 = b2&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;andb false _ = false&quot;</span>
+
+<span class="command">fun</span> orb <span class="delimiter">::</span> <span class="string">&quot;bool =&gt; bool =&gt; bool&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;orb true _ = true&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;orb false b2 = b2&quot;</span>
+
+<span class="command">lemma</span> test_orb1<span class="delimiter">:</span> <span class="string">&quot;(orb true false) = true&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_orb2<span class="delimiter">:</span> <span class="string">&quot;(orb false false) = false&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_orb3<span class="delimiter">:</span> <span class="string">&quot;(orb false true) = true&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_orb4<span class="delimiter">:</span> <span class="string">&quot;(orb true true) = true&quot;</span> <span class="command">by</span> simp
+
+<span class="comment">(* Exercise: 1 star (nandb) *)</span>
+
+<span class="command">fun</span> nandb <span class="delimiter">::</span> <span class="string">&quot;bool =&gt; bool =&gt; bool&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;nandb true b2 = negb b2&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;nandb false _ = true&quot;</span>
+
+<span class="command">lemma</span> test_nandb1<span class="delimiter">:</span> <span class="string">&quot;(nandb true false) = true&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_nandb2<span class="delimiter">:</span> <span class="string">&quot;(nandb false false) = true&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_nandb3<span class="delimiter">:</span> <span class="string">&quot;(nandb false true) = true&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_nandb4<span class="delimiter">:</span> <span class="string">&quot;(nandb true true) = false&quot;</span> <span class="command">by</span> simp
+
+<span class="comment">(* Exercise: 1 star (andb3) *)</span>
+
+<span class="command">fun</span> andb3 <span class="delimiter">::</span> <span class="string">&quot;bool =&gt; bool =&gt; bool =&gt; bool&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;andb3 b1 b2 b3 = andb b1 (andb b2 b3)&quot;</span>
+
+<span class="command">lemma</span> test_andb31<span class="delimiter">:</span> <span class="string">&quot;(andb3 true true true) = true&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_andb32<span class="delimiter">:</span> <span class="string">&quot;(andb3 false true true) = false&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_andb33<span class="delimiter">:</span> <span class="string">&quot;(andb3 true false true) = false&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_andb34<span class="delimiter">:</span> <span class="string">&quot;(andb3 true true false) = false&quot;</span> <span class="command">by</span> simp
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Function Types *}</span>
+
+<span class="command">value</span> <span class="string">&quot;true&quot;</span>
+  <span class="comment">(* ==&gt; &quot;true&quot; :: &quot;Basics.bool&quot; *)</span>
+<span class="command">value</span> <span class="string">&quot;negb true&quot;</span>
+  <span class="comment">(* ==&gt; &quot;false&quot; :: &quot;Basics.bool&quot; *)</span>
+<span class="command">value</span> <span class="string">&quot;negb&quot;</span>
+  <span class="comment">(* ==&gt; &quot;_&quot; :: &quot;Basics.bool =&gt; Basics.bool&quot;*)</span>
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Numbers *}</span>
+
+<span class="command">datatype</span> nat <span class="delimiter">=</span> zero <span class="delimiter">|</span> suc nat
+
+<span class="command">fun</span> pred <span class="delimiter">::</span> <span class="string">&quot;nat =&gt; nat&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;pred zero = zero&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;pred (suc n&#39;) = n&#39;&quot;</span>
+
+<span class="command">fun</span> minustwo <span class="delimiter">::</span> <span class="string">&quot;nat =&gt; nat&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;minustwo zero = zero&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;minustwo (suc zero) = zero&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;minustwo (suc (suc n&#39;)) = n&#39;&quot;</span>
+
+<span class="command">value</span> <span class="string">&quot;suc (suc (suc (suc zero)))&quot;</span>
+  <span class="comment">(* ==&gt; &quot;suc (suc (suc (suc zero)))&quot; :: &quot;Basics.nat&quot; *)</span>
+<span class="command">value</span> <span class="string">&quot;minustwo (suc (suc (suc (suc zero))))&quot;</span>
+  <span class="comment">(* ==&gt; &quot;suc (suc zero)&quot; :: &quot;Basics.nat&quot; *)</span>
+
+<span class="command">value</span> <span class="string">&quot;suc&quot;</span>
+  <span class="comment">(* ==&gt; &quot;_&quot; :: &quot;Basics.nat =&gt; Basics.nat&quot; *)</span>
+<span class="command">value</span> <span class="string">&quot;pred&quot;</span>
+  <span class="comment">(* ==&gt; &quot;_&quot; :: &quot;Basics.nat =&gt; Basics.nat&quot; *)</span>
+<span class="command">value</span> <span class="string">&quot;minustwo&quot;</span>
+  <span class="comment">(* ==&gt; &quot;_&quot; :: &quot;Basics.nat =&gt; Basics.nat&quot; *)</span>
+
+<span class="command">fun</span> evenb <span class="delimiter">::</span> <span class="string">&quot;nat =&gt; bool&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;evenb zero = true&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;evenb (suc zero) = false&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;evenb (suc (suc b)) = evenb b&quot;</span>
+
+<span class="command">fun</span> oddb <span class="keyword2">where</span> <span class="string">&quot;oddb n = negb (evenb n)&quot;</span>
+
+<span class="command">lemma</span> test_oddb1<span class="delimiter">:</span> <span class="string">&quot;(oddb (suc zero)) = true&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_oddb2<span class="delimiter">:</span> <span class="string">&quot;(oddb (suc (suc (suc (suc zero))))) = false&quot;</span> <span class="command">by</span> simp
+
+<span class="command">fun</span> plus <span class="delimiter">::</span> <span class="string">&quot;nat =&gt; nat =&gt; nat&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;plus zero m = m&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;plus (suc n&#39;) m = suc (plus n&#39; m)&quot;</span>
+
+<span class="command">value</span> <span class="string">&quot;plus (suc (suc (suc zero))) (suc (suc zero))&quot;</span>
+  <span class="comment">(* ==&gt; &quot;suc (suc (suc (suc (suc zero))))&quot; :: &quot;Basics.nat&quot; *)</span>
+
+<span class="command">fun</span> mult <span class="delimiter">::</span> <span class="string">&quot;nat =&gt; nat =&gt; nat&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;mult zero m = zero&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;mult (suc n&#39;) m = plus m (mult n&#39; m)&quot;</span>
+
+<span class="comment">(* test_mult1: &quot;3 * 3 = 9&quot; *)</span>
+<span class="command">lemma</span> test_mult1<span class="delimiter">:</span>
+  <span class="string">&quot;mult (suc (suc (suc zero))) (suc (suc (suc zero))) = (suc (suc (suc (suc (suc (suc (suc (suc (suc zero)))))))))&quot;</span>
+<span class="command">by</span> simp
+
+<span class="command">fun</span> minus <span class="delimiter">::</span> <span class="string">&quot;nat =&gt; nat =&gt; nat&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;minus zero _ = zero&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;minus (suc n) zero = suc n&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;minus (suc n) (suc m) = minus n m&quot;</span>
+
+<span class="command">fun</span> exp <span class="delimiter">::</span> <span class="string">&quot;nat =&gt; nat =&gt; nat&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;exp base zero = suc zero&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;exp base (suc p) = mult base (exp base p)&quot;</span>
+
+<span class="comment">(* Exercise: 1 star (factorial) *)</span>
+
+<span class="command">fun</span> factorial <span class="delimiter">::</span> <span class="string">&quot;nat =&gt; nat&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;factorial zero = suc zero&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;factorial (suc n) = mult (suc n) (factorial n)&quot;</span>
+
+<span class="command">lemma</span> test_factorial1<span class="delimiter">:</span> <span class="string">&quot;(factorial (suc (suc (suc zero)))) = suc (suc (suc (suc (suc (suc zero)))))&quot;</span> <span class="command">by</span> simp
+<span class="comment">(* Example test_factorial2: (factorial 5) = (mult 10 12) *)</span>
+
+<span class="command">no_notation</span>
+  Groups.plus <span class="delimiter">(</span><span class="keyword2">infixl</span> <span class="string">&quot;+&quot;</span> 65<span class="delimiter">)</span> <span class="keyword2">and</span>
+  Product_Type.Times <span class="delimiter">(</span><span class="keyword2">infixr</span> <span class="string">&quot;&times;&quot;</span> 80<span class="delimiter">)</span>
+
+<span class="command">notation</span>
+  plus <span class="delimiter">(</span><span class="keyword2">infixl</span> <span class="string">&quot;+&quot;</span> 65<span class="delimiter">)</span> <span class="keyword2">and</span>
+  minus <span class="delimiter">(</span><span class="keyword2">infixl</span> <span class="string">&quot;-&quot;</span> 65<span class="delimiter">)</span> <span class="keyword2">and</span>
+  mult <span class="delimiter">(</span><span class="keyword2">infixl</span> <span class="string">&quot;&times;&quot;</span> 80<span class="delimiter">)</span>
+
+<span class="command">value</span> <span class="string">&quot;(zero + suc zero) + suc zero&quot;</span>
+  <span class="comment">(* ==&gt; &quot;suc (suc zero)&quot; :: &quot;Basics.nat&quot; *)</span>
+
+<span class="command">fun</span> beq_nat <span class="delimiter">::</span> <span class="string">&quot;nat =&gt; nat =&gt; bool&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;beq_nat zero zero = true&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;beq_nat zero (suc m) = false&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;beq_nat (suc n) zero = false&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;beq_nat (suc n) (suc m) = beq_nat n m&quot;</span>
+
+<span class="command">fun</span> ble_nat <span class="delimiter">::</span> <span class="string">&quot;nat =&gt; nat =&gt; bool&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;ble_nat zero _ = true&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;ble_nat (suc n) zero = false&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;ble_nat (suc n) (suc m) = ble_nat n m&quot;</span>
+
+<span class="command">lemma</span> test_ble_nat1<span class="delimiter">:</span> <span class="string">&quot;ble_nat (suc (suc zero)) (suc (suc zero)) = true&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_ble_nat2<span class="delimiter">:</span> <span class="string">&quot;ble_nat (suc (suc zero)) (suc (suc (suc (suc zero)))) = true&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_ble_nat3<span class="delimiter">:</span> <span class="string">&quot;ble_nat (suc (suc (suc (suc zero)))) (suc (suc zero)) = false&quot;</span> <span class="command">by</span> simp
+
+<span class="comment">(* Exercise: 2 stars (blt_nat) *)</span>
+
+<span class="command">fun</span> blt_nat <span class="delimiter">::</span> <span class="string">&quot;nat =&gt; nat =&gt; bool&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;blt_nat n m = andb (ble_nat n m) (negb (beq_nat n m))&quot;</span>
+
+<span class="command">lemma</span> test_blt_nat1<span class="delimiter">:</span> <span class="string">&quot;blt_nat (suc (suc zero)) (suc (suc zero)) = false&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_blt_nat2<span class="delimiter">:</span> <span class="string">&quot;blt_nat (suc (suc zero)) (suc (suc (suc (suc zero)))) = true&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_blt_nat3<span class="delimiter">:</span> <span class="string">&quot;blt_nat (suc (suc (suc (suc zero)))) (suc (suc zero)) = false&quot;</span> <span class="command">by</span> simp
+
+<span class="command">subsection</span> <span class="verbatim">{* Proof by Simplification *}</span>
+
+<span class="command">theorem</span> plus_O_n<span class="delimiter">:</span> <span class="string">&quot;&forall;(n :: nat). zero + n = n&quot;</span> <span class="command">by</span> simp
+<span class="command">theorem</span> plus_1_l<span class="delimiter">:</span> <span class="string">&quot;&forall;(n :: nat). (suc zero) + n = suc n&quot;</span> <span class="command">by</span> simp
+<span class="command">theorem</span> mult_0_l<span class="delimiter">:</span> <span class="string">&quot;&forall;(n :: nat). zero &times; n = zero&quot;</span> <span class="command">by</span> simp
+
+<span class="command">subsection</span> <span class="verbatim">{* Proof by Rewriting *}</span>
+
+<span class="command">theorem</span> plus_id_example<span class="delimiter">:</span> <span class="string">&quot;&forall;n m :: nat. n = m --&gt; n + n = m + m&quot;</span> <span class="command">by</span> simp
+
+<span class="comment">(* Exercise: 1 star (plus_id_exercise) *)</span>
+
+<span class="command">theorem</span> plus_id_exercise<span class="delimiter">:</span> <span class="string">&quot;&forall;n m l :: nat. n = m --&gt; m = l --&gt; n + m = m + l&quot;</span> <span class="command">by</span> simp
+<span class="command">theorem</span> mult_0_plus<span class="delimiter">:</span> <span class="string">&quot;&forall;n m :: nat. (zero + n) &times; m = n &times; m&quot;</span> <span class="command">by</span> simp
+
+<span class="comment">(* Exercise: 2 stars (mult_S_1) *)</span>
+
+<span class="command">theorem</span> mult_S_1<span class="delimiter">:</span> <span class="string">&quot;&forall;n m :: nat. m = suc n --&gt; m &times; (suc zero + n) = m &times; m&quot;</span> <span class="command">by</span> simp
+
+<span class="command">subsection</span> <span class="verbatim">{* Proof by Case Analysis *}</span>
+
+<span class="command">theorem</span> plus_1_neq_0<span class="delimiter">:</span> <span class="string">&quot;&forall;n :: nat. beq_nat (n + suc zero) zero = false&quot;</span>
+<span class="command">apply</span> <span class="delimiter">(</span>rule allI<span class="delimiter">)</span> <span class="command">by</span> <span class="delimiter">(</span>case_tac n<span class="delimiter">,</span> simp<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+
+<span class="command">theorem</span> negb_involutive<span class="delimiter">:</span> <span class="string">&quot;&forall;b :: bool. negb (negb b) = b&quot;</span>
+<span class="command">apply</span> <span class="delimiter">(</span>rule allI<span class="delimiter">)</span> <span class="command">by</span> <span class="delimiter">(</span>case_tac b<span class="delimiter">,</span> simp<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+
+<span class="comment">(* Exercise: 1 star (zero_nbeq_plus_1) *)</span>
+
+<span class="command">theorem</span> zero_nbeq_plus_1<span class="delimiter">:</span> <span class="string">&quot;&forall;n :: nat. beq_nat zero (n + suc zero) = false&quot;</span>
+<span class="command">apply</span> <span class="delimiter">(</span>rule allI<span class="delimiter">)</span> <span class="command">by</span> <span class="delimiter">(</span>case_tac n<span class="delimiter">,</span> simp<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+
+<span class="command">subsection</span> <span class="verbatim">{* More Exercises *}</span>
+
+<span class="comment">(* Exercise: 2 stars (boolean functions) *)</span>
+
+<span class="command">theorem</span> identity_fn_applied_twice<span class="delimiter">:</span>
+  <span class="string">&quot;&forall;(f :: bool =&gt; bool). (&forall;(x :: bool). f x = x) --&gt; (&forall;(b :: bool). f (f b) = b)&quot;</span>
+<span class="command">by</span> simp
+
+<span class="command">theorem</span> negation_fn_applied_twice<span class="delimiter">:</span>
+  <span class="string">&quot;&forall;(f :: bool =&gt; bool). (&forall;(x :: bool). f x = negb x) --&gt; (&forall;(b :: bool). f (f b) = b)&quot;</span>
+<span class="command">apply</span> auto <span class="command">by</span> <span class="delimiter">(</span>case_tac b<span class="delimiter">,</span> simp<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+
+<span class="comment">(* Exercise: 2 stars (andb_eq_orb) *)</span>
+
+<span class="command">theorem</span> andb_eq_orb<span class="delimiter">:</span> <span class="string">&quot;&forall;b c :: bool. (andb b c = orb b c) --&gt; b = c&quot;</span>
+<span class="command">apply</span> auto <span class="command">by</span> <span class="delimiter">(</span>case_tac b<span class="delimiter">,</span> simp<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+
+<span class="comment">(* Exercise: 3 stars (binary) *)</span>
+
+<span class="command">datatype</span> bin <span class="delimiter">=</span> zero <span class="delimiter">|</span> twice bin <span class="delimiter">|</span> twice_one bin
+
+<span class="command">fun</span> incr <span class="delimiter">::</span> <span class="string">&quot;bin =&gt; bin&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;incr bin.zero = twice_one bin.zero&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;incr (twice n) = twice_one n&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;incr (twice_one n) = twice (incr n)&quot;</span>
+
+<span class="command">fun</span> double <span class="delimiter">::</span> <span class="string">&quot;nat =&gt; nat&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;double nat.zero = nat.zero&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;double (suc n) = suc (suc (double n))&quot;</span>
+
+<span class="command">fun</span> bin_nat <span class="delimiter">::</span> <span class="string">&quot;bin =&gt; nat&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;bin_nat bin.zero = nat.zero&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;bin_nat (twice n) = double (bin_nat n)&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;bin_nat (twice_one n) = suc (double (bin_nat n))&quot;</span>
+
+<span class="command">lemma</span> incr_nat_comm<span class="delimiter">:</span> <span class="string">&quot;&forall;b :: bin. bin_nat (incr b) = suc (bin_nat b)&quot;</span>
+<span class="command">apply</span> auto <span class="command">by</span> <span class="delimiter">(</span>induct_tac b<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+
+<span class="command">subsection</span> <span class="verbatim">{* Optional Material *}</span>
+
+<span class="command">subsubsection</span> <span class="verbatim">{* More on Notation *}</span>
+<span class="command">subsubsection</span> <span class="verbatim">{* Fixpoints and Structural Recursion *}</span>
+
+<span class="command">end</span>
+</pre>
+
+</div>
+</body>
+</html>

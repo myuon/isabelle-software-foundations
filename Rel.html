@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>Theory Rel (Isabelle2014: August 2014)</title>
+<link media="all" rel="stylesheet" type="text/css" href="isabelle.css"/>
+</head>
+
+<body>
+<div class="head"><h1>Theory Rel</h1>
+
+<span class="command">theory</span> <span class="name">Rel</span><br/>
+<span class="keyword">imports</span> <a href="../../HOL/HOL/Main.html"><span class="name">Main</span></a><br/>
+
+</div>
+<div class="source">
+<pre><span class="command">theory</span> Rel
+<span class="keyword2">imports</span> Main
+<span class="keyword2">begin</span>
+
+<span class="command">section</span> <span class="verbatim">{* Rel *}</span>
+
+<span class="command">type_synonym</span> <span class="tfree">&#39;a</span> relation <span class="delimiter">=</span> <span class="string">&quot;&#39;a =&gt; &#39;a =&gt; bool&quot;</span>
+<span class="command">term</span> <span class="string">&quot;less_eq&quot;</span>
+  <span class="comment">(* &quot;op &le;&quot; :: &quot;&#39;a =&gt; &#39;a =&gt; bool&quot; *)</span>
+
+<span class="command">subsection</span> <span class="verbatim">{* Basic Properties of Relations *}</span>
+
+<span class="command">definition</span> partial_function&#39; <span class="delimiter">::</span> <span class="string">&quot;&#39;a relation =&gt; bool&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;partial_function&#39; R &equiv; &forall;x y1 y2. R x y1 --&gt; R x y2 --&gt; y1 = y2&quot;</span>
+
+<span class="command">fun</span> next_nat <span class="delimiter">::</span> <span class="string">&quot;nat =&gt; nat =&gt; bool&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;next_nat n m = (Suc n = m)&quot;</span>
+<span class="command">term</span> <span class="string">&quot;next_nat :: nat relation&quot;</span>
+  <span class="comment">(* &quot;next_nat&quot; :: &quot;nat =&gt; nat =&gt; bool&quot; *)</span>
+
+<span class="command">theorem</span> next_nat_partial_function<span class="delimiter">:</span> <span class="string">&quot;partial_function&#39; next_nat&quot;</span>
+<span class="command">unfolding</span> partial_function&#39;_def <span class="command">by</span> simp
+
+<span class="command">theorem</span> le_not_a_partial_function<span class="delimiter">:</span> <span class="string">&quot;&not; (partial_function&#39; (op &le; :: nat =&gt; nat =&gt; bool))&quot;</span>
+<span class="command">unfolding</span> partial_function&#39;_def <span class="command">by</span> auto
+
+<span class="comment">(* Exercise: 2 stars, optional *)</span>
+<span class="comment">(* total_relation ? *)</span>
+
+<span class="comment">(* Exercise: 2 stars, optional *)</span>
+<span class="comment">(* empty_relation ? *)</span>
+
+<span class="command">definition</span> reflexive <span class="delimiter">::</span> <span class="string">&quot;&#39;a relation =&gt; bool&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;reflexive R &equiv; &forall;a. R a a&quot;</span>
+
+<span class="command">theorem</span> le_reflexive<span class="delimiter">:</span> <span class="string">&quot;reflexive (op &le; :: nat =&gt; nat =&gt; bool)&quot;</span>
+<span class="command">unfolding</span> reflexive_def <span class="command">by</span> simp
+
+<span class="command">definition</span> transitive <span class="delimiter">::</span> <span class="string">&quot;&#39;a relation =&gt; bool&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;transitive R &equiv; &forall;a b c. R a b --&gt; R b c --&gt; R a c&quot;</span>
+
+<span class="command">theorem</span> le_trans<span class="delimiter">:</span> <span class="string">&quot;transitive (op &le; :: nat =&gt; nat =&gt; bool)&quot;</span>
+<span class="command">unfolding</span> transitive_def <span class="command">by</span> simp
+
+<span class="command">theorem</span> lt_trans<span class="delimiter">:</span> <span class="string">&quot;transitive (op &lt; :: nat =&gt; nat =&gt; bool)&quot;</span>
+<span class="command">unfolding</span> transitive_def <span class="command">by</span> simp
+
+<span class="comment">(* Exercise: 2 stars, optional *)</span>
+<span class="comment">(* lt_trans&#39; *)</span>
+
+<span class="comment">(* Exercise: 2 stars, optional *)</span>
+<span class="comment">(* lt_trans&#39;&#39; *)</span>
+
+<span class="command">theorem</span> le_Sn_le<span class="delimiter">:</span> <span class="string">&quot;&forall;n m. Suc n &le; m --&gt; n &le; m&quot;</span> <span class="command">by</span> simp
+
+<span class="comment">(* Exercise: 1 star, optional *)</span>
+<span class="command">theorem</span> le_S_n<span class="delimiter">:</span> <span class="string">&quot;&forall;n m. Suc n &le; Suc m --&gt; n &le; m&quot;</span> <span class="command">by</span> simp
+
+<span class="comment">(* Exercise: 2 stars, optional (le_Sn_n_inf) *)</span>
+<span class="comment">(* Exercise: 1 star, optional *)</span>
+<span class="command">theorem</span> le_Sn_n_inf<span class="delimiter">:</span> <span class="string">&quot;&forall;n. &not; (Suc n &le; n)&quot;</span> <span class="command">by</span> simp
+
+<span class="command">definition</span> symmetric <span class="delimiter">::</span> <span class="string">&quot;&#39;a relation =&gt; bool&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;symmetric R &equiv; &forall;a b. R a b --&gt; R b a&quot;</span>
+
+<span class="comment">(* Exercise: 2 stars, optional *)</span>
+<span class="command">theorem</span> le_not_symmetric<span class="delimiter">:</span> <span class="string">&quot;&not; (symmetric (op &le; :: nat =&gt; nat =&gt; bool))&quot;</span>
+<span class="command">unfolding</span> symmetric_def <span class="command">by</span> auto
+
+<span class="command">definition</span> antisymmetric <span class="keyword2">where</span>
+  <span class="string">&quot;antisymmetric R &equiv; &forall;a b. R a b --&gt; R b a --&gt; a = b&quot;</span>
+
+<span class="comment">(* Exercise: 2 stars, optional *)</span>
+
+<span class="command">theorem</span> le_antisymmetric<span class="delimiter">:</span> <span class="string">&quot;antisymmetric (op &le; :: nat =&gt; nat =&gt; bool)&quot;</span>
+<span class="command">unfolding</span> antisymmetric_def <span class="command">by</span> auto
+
+<span class="comment">(* Exercise: 2 stars, optional *)</span>
+
+<span class="command">theorem</span> le_step<span class="delimiter">:</span> <span class="string">&quot;&forall;n m p. n &lt; m --&gt; m &le; Suc p --&gt; n &le; p&quot;</span> <span class="command">by</span> simp
+
+<span class="command">definition</span> equivalence <span class="keyword2">where</span>
+  <span class="string">&quot;equivalence R &equiv; reflexive R &and; symmetric R &and; transitive R&quot;</span>
+
+<span class="command">definition</span> order <span class="keyword2">where</span>
+  <span class="string">&quot;order R &equiv; reflexive R &and; antisymmetric R &and; transitive R&quot;</span>
+
+<span class="command">definition</span> preorder <span class="keyword2">where</span>
+  <span class="string">&quot;preorder R &equiv; reflexive R &and; transitive R&quot;</span>
+
+<span class="command">theorem</span> le_order<span class="delimiter">:</span> <span class="string">&quot;order (op &le; :: nat =&gt; nat =&gt; bool)&quot;</span>
+<span class="command">unfolding</span> order_def reflexive_def antisymmetric_def transitive_def <span class="command">by</span> auto
+
+<span class="command">subsection</span> <span class="verbatim">{* Reflexive, Transitive Closure *}</span>
+
+<span class="command">inductive_set</span> clos_refl_trans <span class="delimiter">::</span> <span class="string">&quot;(&#39;a &times; &#39;a) set =&gt; (&#39;a &times; &#39;a) set&quot;</span> <span class="keyword2">for</span> R <span class="delimiter">::</span> <span class="string">&quot;(&#39;a &times; &#39;a) set&quot;</span> <span class="keyword2">where</span>
+  rt_step<span class="delimiter">:</span> <span class="string">&quot;(x,y) &isin; R ==&gt; (x,y) &isin; clos_refl_trans R&quot;</span>
+  <span class="delimiter">|</span> rt_refl<span class="delimiter">:</span> <span class="string">&quot;(x,x) &isin; clos_refl_trans R&quot;</span>
+  <span class="delimiter">|</span> rt_trans<span class="delimiter">:</span> <span class="string">&quot;[| (x,y) &isin; clos_refl_trans R; (y,z) &isin; clos_refl_trans R |] ==&gt; (x,z) &isin; clos_refl_trans R&quot;</span>
+
+<span class="command">abbreviation</span> clos_refl_trans_op <span class="delimiter">::</span> <span class="string">&quot;&#39;a relation =&gt; &#39;a relation&quot;</span> <span class="delimiter">(</span><span class="string">&quot;rt[ _ ]&quot;</span><span class="delimiter">)</span> <span class="keyword2">where</span>
+  <span class="string">&quot;rt[R] x y &equiv; ((x,y) &isin; clos_refl_trans {(x,y). R x y})&quot;</span>
+
+<span class="command">lemma</span> next_nat_closure_is_le_right<span class="delimiter">:</span> <span class="string">&quot;rt[next_nat] n m ==&gt; rt[next_nat] n (Suc m)&quot;</span>
+<span class="command">apply</span> <span class="delimiter">(</span>erule clos_refl_trans.induct<span class="delimiter">)</span>
+<span class="command">apply</span> <span class="delimiter">(</span>auto simp add<span class="delimiter">:</span> rt_step<span class="delimiter">)</span>
+<span class="command">apply</span> <span class="delimiter">(</span>rule_tac rt_trans<span class="delimiter">,</span> rule_tac rt_step<span class="delimiter">,</span> auto simp add<span class="delimiter">:</span> rt_step<span class="delimiter">)</span>
+<span class="command">apply</span> <span class="delimiter">(</span>rule_tac rt_trans<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+<span class="command">done</span>
+
+<span class="command">theorem</span> next_nat_closure_is_le<span class="delimiter">:</span> <span class="string">&quot;&forall;n m. (n &le; m) &lt;-&gt; (rt[next_nat] n m)&quot;</span> <span class="delimiter">(</span><span class="keyword2">is</span> <span class="string">&quot;&forall;n m. _ &lt;-&gt; (?R n m)&quot;</span><span class="delimiter">)</span>
+<span class="command">proof</span> auto
+  <span class="command">fix</span> n <span class="delimiter">::</span> nat <span class="keyword2">and</span> m
+  <span class="command">assume</span> <span class="string">&quot;n &le; m&quot;</span>
+  <span class="command">hence</span> mn<span class="delimiter">:</span> <span class="string">&quot;m = n + (m - n)&quot;</span> <span class="command">by</span> auto
+  <span class="command">have</span> p<span class="delimiter">:</span> <span class="string">&quot;!!a :: nat. ?R n (n + a)&quot;</span>
+    <span class="command">apply</span> <span class="delimiter">(</span>induct_tac a<span class="delimiter">,</span> auto simp add<span class="delimiter">:</span> rt_refl<span class="delimiter">)</span>
+    <span class="command">using</span> next_nat_closure_is_le_right <span class="delimiter">[</span>of n<span class="delimiter">]</span> <span class="command">by</span> auto
+  <span class="command">show</span> <span class="string">&quot;rt[ &lambda;x. op = (Suc x) ] n m&quot;</span>
+    <span class="command">using</span> p <span class="delimiter">[</span>of <span class="string">&quot;m - n&quot;</span><span class="delimiter">]</span> mn <span class="command">by</span> auto
+<span class="command">next</span>
+  <span class="command">fix</span> n <span class="delimiter">::</span> nat <span class="keyword2">and</span> m
+  <span class="command">assume</span> <span class="string">&quot;rt[ &lambda;x. op = (Suc x) ] n m&quot;</span>
+  <span class="command">thus</span> <span class="string">&quot;n &le; m&quot;</span>
+    <span class="command">by</span> <span class="delimiter">(</span>rule_tac clos_refl_trans.induct <span class="delimiter">[</span>of n m<span class="delimiter">]</span><span class="delimiter">,</span> auto<span class="delimiter">)</span>
+<span class="command">qed</span>
+
+<span class="command">inductive_set</span> refl_step_closure <span class="delimiter">::</span> <span class="string">&quot;(&#39;a &times; &#39;a) set =&gt; (&#39;a &times; &#39;a) set&quot;</span> <span class="keyword2">for</span> R <span class="delimiter">::</span> <span class="string">&quot;(&#39;a &times; &#39;a) set&quot;</span> <span class="keyword2">where</span>
+  rsc_refl<span class="delimiter">:</span> <span class="string">&quot;(x,x) &isin; refl_step_closure R&quot;</span>
+  <span class="delimiter">|</span> rsc_step<span class="delimiter">:</span> <span class="string">&quot;[| (x,y) &isin; R; (y,z) &isin; refl_step_closure R |] ==&gt; (x,z) &isin; refl_step_closure R&quot;</span>
+
+<span class="command">abbreviation</span> refl_step_closure_op <span class="delimiter">::</span> <span class="string">&quot;&#39;a relation =&gt; &#39;a relation&quot;</span> <span class="delimiter">(</span><span class="string">&quot;rsc[ _ ]&quot;</span><span class="delimiter">)</span> <span class="keyword2">where</span>
+  <span class="string">&quot;rsc[R] x y &equiv; ((x,y) &isin; refl_step_closure {(x,y). R x y})&quot;</span>
+
+<span class="command">theorem</span> rsc_R<span class="delimiter">:</span> <span class="string">&quot;R x y ==&gt; rsc[R] x y&quot;</span>
+<span class="command">by</span> <span class="delimiter">(</span>simp add<span class="delimiter">:</span> rsc_refl rsc_step<span class="delimiter">)</span>
+
+<span class="command">lemma</span> rsc_trans_lem<span class="delimiter">:</span> <span class="string">&quot;rsc[R] x y ==&gt; rsc[R] y z --&gt; rsc[R] x z&quot;</span>
+<span class="command">apply</span> <span class="delimiter">(</span>erule_tac refl_step_closure.induct<span class="delimiter">)</span>
+<span class="command">by</span> <span class="delimiter">(</span>auto simp add<span class="delimiter">:</span> rsc_step<span class="delimiter">)</span>
+
+<span class="comment">(* Exercise: 2 stars, optional (rsc_trans) *)</span>
+<span class="command">theorem</span> rsc_trans<span class="delimiter">:</span> <span class="string">&quot;&forall;R x y z. rsc[R] x y --&gt; rsc[R] y z --&gt; rsc[R] x z&quot;</span>
+<span class="command">using</span> rsc_trans_lem <span class="command">by</span> fastforce
+
+<span class="comment">(* Exercise: 3 stars, optional (rtc_rsc_coincide) *)</span>
+<span class="command">theorem</span> rtc_rsc_coincide<span class="delimiter">:</span> <span class="string">&quot;&forall;R x y. rt[R] x y &lt;-&gt; rsc[R] x y&quot;</span>
+<span class="command">apply</span> auto
+<span class="command">apply</span> <span class="delimiter">(</span>erule_tac clos_refl_trans.induct<span class="delimiter">,</span> auto simp add<span class="delimiter">:</span> rsc_R rsc_refl rsc_step<span class="delimiter">)</span>
+<span class="command">apply</span> <span class="delimiter">(</span>metis rsc_trans<span class="delimiter">)</span>
+<span class="command">apply</span> <span class="delimiter">(</span>erule_tac refl_step_closure.induct<span class="delimiter">,</span> simp add<span class="delimiter">:</span> rt_refl<span class="delimiter">)</span>
+<span class="command">apply</span> <span class="delimiter">(</span>metis rt_trans rt_step<span class="delimiter">)</span>
+<span class="command">done</span>
+
+<span class="command">end</span>
+
+</pre>
+
+</div>
+</body>
+</html>

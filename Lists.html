@@ -1,0 +1,419 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>Theory Lists (Isabelle2014: August 2014)</title>
+<link media="all" rel="stylesheet" type="text/css" href="isabelle.css"/>
+</head>
+
+<body>
+<div class="head"><h1>Theory Lists</h1>
+
+<span class="command">theory</span> <span class="name">Lists</span><br/>
+<span class="keyword">imports</span> <a href="../../HOL/HOL/Main.html"><span class="name">Main</span></a><br/>
+
+</div>
+<div class="source">
+<pre><span class="command">theory</span> Lists
+<span class="keyword2">imports</span> Main
+<span class="keyword2">begin</span>
+
+<span class="command">section</span> <span class="verbatim">{* Lists *}</span>
+<span class="command">subsection</span> <span class="verbatim">{* Pairs of Numbers *}</span>
+
+<span class="command">datatype</span> natprod <span class="delimiter">=</span> pair nat nat
+
+<span class="command">value</span> <span class="string">&quot;pair 3 5&quot;</span>
+  <span class="comment">(* ==&gt; &quot;pair (Suc (Suc (Suc 0))) (Suc (Suc (Suc (Suc (Suc 0)))))&quot; :: &quot;natprod&quot; *)</span>
+
+<span class="command">fun</span> fst <span class="delimiter">::</span> <span class="string">&quot;natprod =&gt; nat&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;fst (pair x _) = x&quot;</span>
+<span class="command">fun</span> snd <span class="delimiter">::</span> <span class="string">&quot;natprod =&gt; nat&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;snd (pair _ y) = y&quot;</span>
+<span class="command">fun</span> swap_pair <span class="delimiter">::</span> <span class="string">&quot;natprod =&gt; natprod&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;swap_pair (pair x y) = pair y x&quot;</span>
+
+<span class="command">value</span> <span class="string">&quot;fst (pair 3 5)&quot;</span>
+  <span class="comment">(* ==&gt; &quot;Suc (Suc (Suc 0))&quot; :: &quot;nat&quot; *)</span>
+
+<span class="comment">(* value &quot;fst (3,5)&quot; *)</span>
+  <span class="comment">(* ==&gt; &quot;Suc (Suc (Suc 0))&quot; :: &quot;nat&quot; *)</span>
+
+<span class="command">theorem</span> surjective_pairing&#39;<span class="delimiter">:</span> <span class="string">&quot;&forall;n m :: nat. pair n m = pair (fst (pair n m)) (snd (pair n m))&quot;</span> <span class="command">by</span> simp
+<span class="command">theorem</span> surjective_pairing_stuck<span class="delimiter">:</span> <span class="string">&quot;&forall;(p :: natprod). p = pair (fst p) (snd p)&quot;</span>
+<span class="command">apply</span> auto <span class="command">by</span> <span class="delimiter">(</span>case_tac p<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+
+<span class="comment">(* Exercise: 1 star (snd_fst_is_swap) *)</span>
+
+<span class="command">theorem</span> snd_fst_is_swap<span class="delimiter">:</span> <span class="string">&quot;&forall;(p :: natprod). pair (snd p) (fst p) = swap_pair p&quot;</span>
+<span class="command">apply</span> auto <span class="command">by</span> <span class="delimiter">(</span>case_tac p<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+
+<span class="comment">(* Exercise: 1 star, optional (fst_swap_is_snd) *)</span>
+
+<span class="command">theorem</span> fst_swap_is_snd<span class="delimiter">:</span> <span class="string">&quot;&forall;(p :: natprod). fst (swap_pair p) = snd p&quot;</span>
+<span class="command">apply</span> auto <span class="command">by</span> <span class="delimiter">(</span>case_tac p<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+
+<span class="command">subsection</span> <span class="verbatim">{* Lists of Numbers *}</span>
+
+<span class="command">datatype</span> natlist <span class="delimiter">=</span> nil <span class="delimiter">|</span> cons nat natlist
+
+<span class="command">definition</span> <span class="string">&quot;mylist &equiv; cons 1 (cons 2 (cons 3 nil))&quot;</span>
+
+<span class="command">no_notation</span>
+  List.Nil <span class="delimiter">(</span><span class="string">&quot;[]&quot;</span><span class="delimiter">)</span>
+
+<span class="command">notation</span>
+  nil <span class="delimiter">(</span><span class="string">&quot;[]&quot;</span><span class="delimiter">)</span> <span class="keyword2">and</span>
+  cons <span class="delimiter">(</span><span class="keyword2">infixr</span> <span class="string">&quot;;&quot;</span> 60<span class="delimiter">)</span>
+
+<span class="command">no_syntax</span>
+  <span class="string">&quot;_list&quot;</span> <span class="delimiter">::</span> <span class="string">&quot;args =&gt; &#39;a list&quot;</span> <span class="delimiter">(</span><span class="string">&quot;[(_)]&quot;</span><span class="delimiter">)</span>
+
+<span class="command">syntax</span>
+  <span class="string">&quot;_natlist&quot;</span> <span class="delimiter">::</span> <span class="string">&quot;args =&gt; natlist&quot;</span> <span class="delimiter">(</span><span class="string">&quot;[(_)]&quot;</span><span class="delimiter">)</span>
+
+<span class="command">translations</span>
+  <span class="string">&quot;[x; xs]&quot;</span> <span class="delimiter">==</span> <span class="string">&quot;x;[xs]&quot;</span>
+  <span class="string">&quot;[x]&quot;</span> <span class="delimiter">==</span> <span class="string">&quot;x;[]&quot;</span>
+
+<span class="command">definition</span> <span class="string">&quot;mylist1 &equiv; 1 ; (2 ; (3 ; nil))&quot;</span>
+<span class="command">definition</span> <span class="string">&quot;mylist2 &equiv; 1 ; 2 ; 3 ; nil&quot;</span>
+<span class="command">definition</span> <span class="string">&quot;mylist3 &equiv; [1;2;3]&quot;</span>
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Repeat *}</span>
+
+<span class="command">fun</span> repeat <span class="delimiter">::</span> <span class="string">&quot;nat =&gt; nat =&gt; natlist&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;repeat n 0 = []&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;repeat n (Suc count) = n ; (repeat n count)&quot;</span>
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Length *}</span>
+
+<span class="command">fun</span> length <span class="delimiter">::</span> <span class="string">&quot;natlist =&gt; nat&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;length nil = 0&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;length (h ; t) = Suc (length t)&quot;</span>
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Append *}</span>
+
+<span class="command">no_notation</span>
+  Map.map_add <span class="delimiter">(</span><span class="keyword2">infixl</span> <span class="string">&quot;++&quot;</span> 100<span class="delimiter">)</span>
+
+<span class="command">fun</span> app <span class="delimiter">::</span> <span class="string">&quot;natlist =&gt; natlist =&gt; natlist&quot;</span> <span class="delimiter">(</span><span class="keyword2">infixr</span> <span class="string">&quot;++&quot;</span> 80<span class="delimiter">)</span> <span class="keyword2">where</span>
+  <span class="string">&quot;app nil l2 = l2&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;app (h ; t) l2 = h ; (app t l2)&quot;</span>
+
+<span class="command">lemma</span> test_app1<span class="delimiter">:</span> <span class="string">&quot;[1;2;3] ++ [4;5] = [1;2;3;4;5]&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_app2<span class="delimiter">:</span> <span class="string">&quot;nil ++ [4;5] = [4;5]&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_app3<span class="delimiter">:</span> <span class="string">&quot;[1;2;3] ++ nil = [1;2;3]&quot;</span> <span class="command">by</span> simp
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Head (with default) and Tail *}</span>
+
+<span class="command">fun</span> hd <span class="delimiter">::</span> <span class="string">&quot;nat =&gt; natlist =&gt; nat&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;hd d nil = d&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;hd _ (h ; t) = h&quot;</span>
+
+<span class="command">fun</span> tl <span class="delimiter">::</span> <span class="string">&quot;natlist =&gt; natlist&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;tl nil = nil&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;tl (h ; t) = t&quot;</span>
+
+<span class="command">lemma</span> test_hd1<span class="delimiter">:</span> <span class="string">&quot;hd 0 [1;2;3] = 1&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_hd2<span class="delimiter">:</span> <span class="string">&quot;hd 0 [] = 0&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_tl<span class="delimiter">:</span> <span class="string">&quot;tl [1;2;3] = [2;3]&quot;</span> <span class="command">by</span> simp
+
+<span class="comment">(* Exercise: 2 stars (list_funs) *)</span>
+
+<span class="command">fun</span> nonzeros <span class="delimiter">::</span> <span class="string">&quot;natlist =&gt; natlist&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;nonzeros nil = nil&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;nonzeros (h ; t) = (if h = 0 then nonzeros t else h ; nonzeros t)&quot;</span>
+
+<span class="command">lemma</span> test_nonzeros<span class="delimiter">:</span> <span class="string">&quot;nonzeros [0;1;0;2;3;0;0] = [1;2;3]&quot;</span> <span class="command">by</span> simp
+
+<span class="command">fun</span> oddmembers <span class="delimiter">::</span> <span class="string">&quot;natlist =&gt; natlist&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;oddmembers nil = nil&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;oddmembers (h ; t) = (if h mod 2 = 0 then oddmembers t else h ; oddmembers t)&quot;</span>
+
+<span class="command">lemma</span> test_oddmembers<span class="delimiter">:</span> <span class="string">&quot;oddmembers [0;1;0;2;3;0;0] = [1;3]&quot;</span> <span class="command">by</span> simp
+
+<span class="command">fun</span> countoddmembers <span class="delimiter">::</span> <span class="string">&quot;natlist =&gt; nat&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;countoddmembers l = length (oddmembers l)&quot;</span>
+
+<span class="command">lemma</span> test_countoddmembers1<span class="delimiter">:</span> <span class="string">&quot;countoddmembers [1;0;3;1;4;5] = 4&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_countoddmembers2<span class="delimiter">:</span> <span class="string">&quot;countoddmembers [0;2;4] = 0&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_countoddmembers3<span class="delimiter">:</span> <span class="string">&quot;countoddmembers nil = 0&quot;</span> <span class="command">by</span> simp
+
+<span class="comment">(* Exercise: 3 stars, advanced (alternate) *)</span>
+
+<span class="command">fun</span> alternate <span class="delimiter">::</span> <span class="string">&quot;natlist =&gt; natlist =&gt; natlist&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;alternate nil l2 = l2&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;alternate l1 nil = l1&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;alternate (h1;t1) (h2;t2) = h1 ; h2 ; alternate t1 t2&quot;</span>
+
+<span class="command">lemma</span> test_alternate1<span class="delimiter">:</span> <span class="string">&quot;alternate [1;2;3] [4;5;6] = [1;4;2;5;3;6]&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_alternate2<span class="delimiter">:</span> <span class="string">&quot;alternate [1] [4;5;6] = [1;4;5;6]&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_alternate3<span class="delimiter">:</span> <span class="string">&quot;alternate [1;2;3] [4] = [1;4;2;3]&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_alternate4<span class="delimiter">:</span> <span class="string">&quot;alternate [] [20;30] = [20;30]&quot;</span> <span class="command">by</span> simp
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Bags via Lists *}</span>
+
+<span class="command">type_synonym</span> bag <span class="delimiter">=</span> natlist
+
+<span class="comment">(* Exercise: 3 stars (bag_functions) *)</span>
+
+<span class="command">fun</span> count <span class="delimiter">::</span> <span class="string">&quot;nat =&gt; bag =&gt; nat&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;count _ nil = 0&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;count a (h ; t) = (if a = h then 1 + count a t else count a t)&quot;</span>
+
+<span class="command">lemma</span> test_count1<span class="delimiter">:</span> <span class="string">&quot;count 1 [1;2;3;1;4;1] = 3&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_count2<span class="delimiter">:</span> <span class="string">&quot;count 6 [1;2;3;1;4;1] = 0&quot;</span> <span class="command">by</span> simp
+
+<span class="command">fun</span> sum <span class="delimiter">::</span> <span class="string">&quot;bag =&gt; bag =&gt; bag&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;sum l1 l2 = l1 ++ l2&quot;</span>
+
+<span class="command">lemma</span> test_sum1<span class="delimiter">:</span> <span class="string">&quot;count 1 (sum [1;2;3] [1;4;1]) = 3&quot;</span> <span class="command">by</span> simp
+
+<span class="command">fun</span> add <span class="delimiter">::</span> <span class="string">&quot;nat =&gt; bag =&gt; bag&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;add x xs = x ; xs&quot;</span>
+
+<span class="command">lemma</span> test_add1<span class="delimiter">:</span> <span class="string">&quot;count 1 (add 1 [1;4;1]) = 3&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_add2<span class="delimiter">:</span> <span class="string">&quot;count 5 (add 1 [1;4;1]) = 0&quot;</span> <span class="command">by</span> simp
+
+<span class="command">fun</span> member <span class="delimiter">::</span> <span class="string">&quot;nat =&gt; bag =&gt; bool&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;member x nil = False&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;member x (h; t) = (if x = h then True else member x t)&quot;</span>
+
+<span class="command">lemma</span> test_member1<span class="delimiter">:</span> <span class="string">&quot;member 1 [1;4;1] = True&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_member2<span class="delimiter">:</span> <span class="string">&quot;member 2 [1;4;1] = False&quot;</span> <span class="command">by</span> simp
+
+<span class="comment">(* Exercise: 3 stars, optional (bag_more_functions) *)</span>
+
+<span class="command">fun</span> remove_one <span class="delimiter">::</span> <span class="string">&quot;nat =&gt; bag =&gt; bag&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;remove_one _ nil = nil&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;remove_one x (h;t) = (if x = h then t else h ; remove_one x t)&quot;</span>
+
+<span class="command">lemma</span> test_remove_one1<span class="delimiter">:</span> <span class="string">&quot;count 5 (remove_one 5 [2;1;5;4;1]) = 0&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_remove_one2<span class="delimiter">:</span> <span class="string">&quot;count 5 (remove_one 5 [2;1;4;1]) = 0&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_remove_one3<span class="delimiter">:</span> <span class="string">&quot;count 4 (remove_one 5 [2;1;4;5;1;4]) = 2&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_remove_one4<span class="delimiter">:</span> <span class="string">&quot;count 5 (remove_one 5 [2;1;5;4;5;1;4]) = 1&quot;</span> <span class="command">by</span> simp
+
+<span class="command">fun</span> remove_all <span class="delimiter">::</span> <span class="string">&quot;nat =&gt; bag =&gt; bag&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;remove_all _ nil = nil&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;remove_all x (h;t) = (if x = h then remove_all x t else h ; remove_all x t)&quot;</span>
+
+<span class="command">lemma</span> test_remove_all1<span class="delimiter">:</span> <span class="string">&quot;count 5 (remove_all 5 [2;1;5;4;1]) = 0&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_remove_all2<span class="delimiter">:</span> <span class="string">&quot;count 5 (remove_all 5 [2;1;4;1]) = 0&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_remove_all3<span class="delimiter">:</span> <span class="string">&quot;count 4 (remove_all 5 [2;1;4;5;1;4]) = 2&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_remove_all4<span class="delimiter">:</span> <span class="string">&quot;count 5 (remove_all 5 [2;1;5;4;5;1;4;5;1;4]) = 0&quot;</span> <span class="command">by</span> simp
+
+<span class="command">fun</span> subset <span class="delimiter">::</span> <span class="string">&quot;bag =&gt; bag =&gt; bool&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;subset nil _ = True&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;subset (x ; xs) ys = (if count x ys = 0 then False else subset xs (remove_one x ys))&quot;</span>
+
+<span class="command">lemma</span> test_subset1<span class="delimiter">:</span> <span class="string">&quot;subset [1;2] [2;1;4;1] = True&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_subset2<span class="delimiter">:</span> <span class="string">&quot;subset [1;2;2] [2;1;4;1] = False&quot;</span> <span class="command">by</span> simp
+
+<span class="comment">(* Exercise: 3 stars (bag_theorem) *)</span>
+
+<span class="command">subsection</span> <span class="verbatim">{* Reasoning About Lists *}</span>
+
+<span class="command">theorem</span> nil_app<span class="delimiter">:</span> <span class="string">&quot;&forall;l::natlist. [] ++ l = l&quot;</span> <span class="command">by</span> simp
+
+<span class="command">fun</span> pred <span class="delimiter">::</span> <span class="string">&quot;nat =&gt; nat&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;pred 0 = 0&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;pred (Suc n) = n&quot;</span>
+
+<span class="command">theorem</span> tl_length_pred<span class="delimiter">:</span> <span class="string">&quot;&forall;l::natlist. pred (length l) = length (tl l)&quot;</span>
+<span class="command">apply</span> auto <span class="command">by</span> <span class="delimiter">(</span>case_tac l<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Micro-Sermon *}</span>
+<span class="command">subsubsection</span> <span class="verbatim">{* Induction on Lists *}</span>
+
+<span class="command">theorem</span> app_assoc<span class="delimiter">:</span> <span class="string">&quot;&forall;l1 l2 l3 :: natlist. (l1 ++ l2) ++ l3 = l1 ++ (l2 ++ l3)&quot;</span>
+<span class="command">apply</span> auto <span class="command">by</span> <span class="delimiter">(</span>induct_tac l1<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Informal version *}</span>
+
+<span class="comment">(* Informal version of the proof *)</span>
+<span class="command">theorem</span> app_assoc_Isar<span class="delimiter">:</span> <span class="string">&quot;&forall;l1 l2 l3 :: natlist. (l1 ++ l2) ++ l3 = l1 ++ (l2 ++ l3)&quot;</span>
+<span class="command">proof</span> <span class="delimiter">(</span>auto<span class="delimiter">,</span> induct_tac l1<span class="delimiter">)</span>
+  <span class="comment">(* case l1 = [] *)</span>
+  <span class="command">show</span> <span class="string">&quot;!!l1 l2 l3. ([] ++ l2) ++ l3 = [] ++ l2 ++ l3&quot;</span> <span class="command">by</span> simp
+<span class="command">next</span>
+  <span class="comment">(* case l1 = nat ; natlist *)</span>
+  <span class="command">fix</span> l1 l2 l3 nat natlist
+  <span class="command">assume</span> hyp<span class="delimiter">:</span> <span class="string">&quot;(natlist ++ l2) ++ l3 = natlist ++ l2 ++ l3&quot;</span>
+  <span class="command">show</span> <span class="string">&quot;((nat ; natlist) ++ l2) ++ l3 = (nat ; natlist) ++ l2 ++ l3&quot;</span>
+    <span class="command">using</span> hyp <span class="command">by</span> simp
+<span class="command">qed</span>
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Another example *}</span>
+
+<span class="command">theorem</span> app_length<span class="delimiter">:</span> <span class="string">&quot;&forall;l1 l2 :: natlist. length (l1 ++ l2) = (length l1) + (length l2)&quot;</span>
+<span class="command">apply</span> auto <span class="command">by</span> <span class="delimiter">(</span>induct_tac l1<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Reversing a list *}</span>
+
+<span class="command">fun</span> snoc <span class="delimiter">::</span> <span class="string">&quot;natlist =&gt; nat =&gt; natlist&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;snoc nil v = [v]&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;snoc (h;t) v = h ; (snoc t v)&quot;</span>
+
+<span class="command">fun</span> rev <span class="delimiter">::</span> <span class="string">&quot;natlist =&gt; natlist&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;rev nil = nil&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;rev (h ; t) = snoc (rev t) h&quot;</span>
+
+<span class="command">lemma</span> test_rev1<span class="delimiter">:</span> <span class="string">&quot;rev [1;2;3] = [3;2;1]&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_rev2<span class="delimiter">:</span> <span class="string">&quot;rev nil = nil&quot;</span> <span class="command">by</span> simp
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Proofs about reverse *}</span>
+
+<span class="command">theorem</span> length_snoc<span class="delimiter">:</span> <span class="string">&quot;&forall;n :: nat. &forall;l :: natlist. length (snoc l n) = Suc (length l)&quot;</span>
+<span class="command">apply</span> auto <span class="command">by</span> <span class="delimiter">(</span>induct_tac l<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+
+<span class="command">theorem</span> rev_length<span class="delimiter">:</span> <span class="string">&quot;&forall;l :: natlist. length (rev l) = length l&quot;</span>
+<span class="command">apply</span> auto <span class="command">by</span> <span class="delimiter">(</span>induct_tac l<span class="delimiter">,</span> auto simp add<span class="delimiter">:</span> length_snoc<span class="delimiter">)</span>
+
+<span class="command">theorem</span> length_snoc_Isar<span class="delimiter">:</span> <span class="string">&quot;&forall;n :: nat. &forall;l :: natlist. length (snoc l n) = Suc (length l)&quot;</span>
+<span class="command">proof</span> <span class="delimiter">(</span>auto<span class="delimiter">,</span> induct_tac l<span class="delimiter">)</span>
+  <span class="comment">(* case l = [] *)</span>
+  <span class="command">fix</span> n l
+  <span class="command">show</span> <span class="string">&quot;Lists.length (snoc [] n) = Suc (Lists.length [])&quot;</span> <span class="command">by</span> simp
+<span class="command">next</span>
+  <span class="comment">(* case l = nat ; natlist *)</span>
+  <span class="command">fix</span> n l nat natlist
+  <span class="command">assume</span> hyp<span class="delimiter">:</span> <span class="string">&quot;Lists.length (snoc natlist n) = Suc (Lists.length natlist)&quot;</span>
+  <span class="command">show</span> <span class="string">&quot;Lists.length (snoc (nat ; natlist) n) = Suc (Lists.length (nat ; natlist))&quot;</span>
+    <span class="command">using</span> hyp <span class="command">by</span> simp
+<span class="command">qed</span>
+
+<span class="comment">(* theorem rev_length_Isar: &quot;&forall;l :: natlist. length (rev l) = length l&quot; *)</span>
+
+<span class="command">subsubsection</span> <span class="verbatim">{* SearchAbout *}</span>
+<span class="command">subsubsection</span> <span class="verbatim">{* List Exercises, Part 1 *}</span>
+
+<span class="comment">(* Exercise: 3 stars (list_exercises) *)</span>
+
+<span class="command">theorem</span> app_nil_end<span class="delimiter">:</span> <span class="string">&quot;&forall;l :: natlist. l ++ [] = l&quot;</span>
+<span class="command">apply</span> auto <span class="command">by</span> <span class="delimiter">(</span>induct_tac l<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+
+<span class="command">lemma</span> rev_involutive_lem<span class="delimiter">:</span> <span class="string">&quot;!!x :: nat. !!l :: natlist. rev (snoc l x) = x ; rev l&quot;</span>
+<span class="command">by</span> <span class="delimiter">(</span>induct_tac l<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+
+<span class="command">theorem</span> rev_involutive<span class="delimiter">:</span> <span class="string">&quot;&forall;l :: natlist. rev (rev l) = l&quot;</span>
+<span class="command">apply</span> auto <span class="command">by</span> <span class="delimiter">(</span>induct_tac l<span class="delimiter">,</span> auto simp add<span class="delimiter">:</span> rev_involutive_lem<span class="delimiter">)</span>
+
+<span class="command">theorem</span> app_assoc4<span class="delimiter">:</span> <span class="string">&quot;&forall;l1 l2 l3 l4 :: natlist. l1 ++ (l2 ++ (l3 ++ l4)) = ((l1 ++ l2) ++ l3) ++ l4&quot;</span>
+<span class="command">apply</span> auto <span class="command">by</span> <span class="delimiter">(</span>induct_tac l1<span class="delimiter">,</span> auto simp add<span class="delimiter">:</span> app_assoc<span class="delimiter">)</span>
+
+<span class="command">theorem</span> snoc_append<span class="delimiter">:</span> <span class="string">&quot;&forall;(l::natlist) (n::nat). snoc l n = l ++ [n]&quot;</span>
+<span class="command">apply</span> auto <span class="command">by</span> <span class="delimiter">(</span>induct_tac l<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+
+<span class="command">theorem</span> distr_rev<span class="delimiter">:</span> <span class="string">&quot;&forall;l1 l2 :: natlist. rev (l1 ++ l2) = (rev l2) ++ (rev l1)&quot;</span>
+<span class="command">apply</span> auto <span class="command">by</span> <span class="delimiter">(</span>induct_tac l1<span class="delimiter">,</span> auto simp add<span class="delimiter">:</span> app_nil_end snoc_append app_assoc<span class="delimiter">)</span>
+
+<span class="command">lemma</span> nonzeros_app<span class="delimiter">:</span> <span class="string">&quot;&forall;l1 l2 :: natlist. nonzeros (l1 ++ l2) = (nonzeros l1) ++ (nonzeros l2)&quot;</span>
+<span class="command">apply</span> auto <span class="command">by</span> <span class="delimiter">(</span>induct_tac l1<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+
+<span class="comment">(* Exercise: 2 stars (beq_natlist) *)</span>
+
+<span class="command">fun</span> beq_natlist <span class="delimiter">::</span> <span class="string">&quot;natlist =&gt; natlist =&gt; bool&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;beq_natlist nil nil = True&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;beq_natlist nil _ = False&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;beq_natlist _ nil = False&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;beq_natlist (h1;t1) (h2;t2) = (if h1 = h2 then beq_natlist t1 t2 else False)&quot;</span>
+
+<span class="command">lemma</span> test_beq_natlist1<span class="delimiter">:</span> <span class="string">&quot;beq_natlist nil nil = True&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_beq_natlist2<span class="delimiter">:</span> <span class="string">&quot;beq_natlist [1;2;3] [1;2;3] = True&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_beq_natlist3<span class="delimiter">:</span> <span class="string">&quot;beq_natlist [1;2;3] [1;2;4] = False&quot;</span> <span class="command">by</span> simp
+
+<span class="command">theorem</span> beq_natlist_refl<span class="delimiter">:</span> <span class="string">&quot;&forall;l::natlist. True = beq_natlist l l&quot;</span>
+<span class="command">apply</span> auto <span class="command">by</span> <span class="delimiter">(</span>induct_tac l<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+
+<span class="command">subsubsection</span> <span class="verbatim">{* List Exercises, Part 2 *}</span>
+
+<span class="comment">(* Exercise: 2 stars (list_design) *)</span>
+<span class="comment">(* Exercise: 3 stars, advanced (bag_proofs) *)</span>
+
+<span class="comment">(* ble_nat = &le; *)</span>
+<span class="command">theorem</span> count_member_nonzero<span class="delimiter">:</span> <span class="string">&quot;&forall;(s :: bag). 1 &le; (count 1 (1 ; s)) = True&quot;</span> <span class="command">by</span> simp
+
+<span class="command">theorem</span> ble_n_Sn <span class="delimiter">:</span> <span class="string">&quot;&forall;n. n &le; (Suc n) = True&quot;</span> <span class="command">by</span> simp
+
+<span class="command">theorem</span> remove_decreases_count<span class="delimiter">:</span> <span class="string">&quot;&forall;(s :: bag). count 0 (remove_one 0 s) &le; count 0 s = True&quot;</span>
+<span class="command">apply</span> auto <span class="command">by</span> <span class="delimiter">(</span>induct_tac s<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+
+<span class="comment">(* Exercise: 3 stars, optional (bag_count_sum) *)</span>
+<span class="comment">(* Exercise: 4 stars, advanced (rev_injective) *)</span>
+
+<span class="command">lemma</span> rev_injective_lem<span class="delimiter">:</span> <span class="string">&quot;!!l1 l2. rev (rev l1) = rev (rev l2) ==&gt; l1 = l2&quot;</span>
+<span class="command">by</span> <span class="delimiter">(</span>auto simp add<span class="delimiter">:</span> rev_involutive<span class="delimiter">)</span>
+
+<span class="command">theorem</span> rev_injective<span class="delimiter">:</span> <span class="string">&quot;&forall;l1 l2 :: natlist. rev l1 = rev l2 --&gt; l1 = l2&quot;</span>
+<span class="command">apply</span> auto <span class="command">by</span> <span class="delimiter">(</span>auto simp add<span class="delimiter">:</span> rev_injective_lem<span class="delimiter">)</span>
+
+<span class="comment">(* a hard way? *)</span>
+
+<span class="command">subsection</span> <span class="verbatim">{* Options *}</span>
+
+<span class="command">datatype</span> natoption <span class="delimiter">=</span> Some nat <span class="delimiter">|</span> None
+
+<span class="command">fun</span> index <span class="delimiter">::</span> <span class="string">&quot;nat =&gt; natlist =&gt; natoption&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;index n nil = None&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;index n (a ; l) = (if n = 0 then Some a else index (pred n) l)&quot;</span>
+
+<span class="command">lemma</span> test_index1<span class="delimiter">:</span> <span class="string">&quot;index 0 [4;5;6;7] = Some 4&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_index2<span class="delimiter">:</span> <span class="string">&quot;index 3 [4;5;6;7] = Some 7&quot;</span>
+<span class="command">proof</span> -
+  <span class="command">have</span> 3<span class="delimiter">:</span> <span class="string">&quot;3 = Suc (Suc 1)&quot;</span> <span class="command">by</span> simp
+  <span class="command">show</span> <span class="var">?thesis</span> <span class="command">by</span> <span class="delimiter">(</span>simp add<span class="delimiter">:</span> 3<span class="delimiter">)</span>
+<span class="command">qed</span>
+<span class="command">lemma</span> test_index3<span class="delimiter">:</span> <span class="string">&quot;index 10 [4;5;6;7] = None&quot;</span>
+<span class="command">proof</span> -
+  <span class="command">have</span> 10<span class="delimiter">:</span> <span class="string">&quot;10 = Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc 1))))))))&quot;</span> <span class="command">by</span> simp
+  <span class="command">show</span> <span class="var">?thesis</span> <span class="command">by</span> <span class="delimiter">(</span>simp add<span class="delimiter">:</span> 10<span class="delimiter">)</span>
+<span class="command">qed</span>
+
+<span class="command">fun</span> option_elim <span class="delimiter">::</span> <span class="string">&quot;nat =&gt; natoption =&gt; nat&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;option_elim d (Some n) = n&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;option_elim d None = d&quot;</span>
+
+<span class="comment">(* Exercise: 2 stars (hd_opt) *)</span>
+
+<span class="command">fun</span> hd_opt <span class="delimiter">::</span> <span class="string">&quot;natlist =&gt; natoption&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;hd_opt nil = None&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;hd_opt l = Some (hd 0 l)&quot;</span>
+
+<span class="command">lemma</span> test_hd_opt1<span class="delimiter">:</span> <span class="string">&quot;hd_opt [] = None&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_hd_opt2<span class="delimiter">:</span> <span class="string">&quot;hd_opt [1] = Some 1&quot;</span> <span class="command">by</span> simp
+<span class="command">lemma</span> test_hd_opt3<span class="delimiter">:</span> <span class="string">&quot;hd_opt [5;6] = Some 5&quot;</span> <span class="command">by</span> simp
+
+<span class="comment">(* Exercise: 1 star, optional (option_elim_hd) *)</span>
+
+<span class="command">theorem</span> option_elim_hd<span class="delimiter">:</span> <span class="string">&quot;&forall;(l::natlist) (default::nat). hd default l = option_elim default (hd_opt l)&quot;</span>
+<span class="command">apply</span> auto <span class="command">by</span> <span class="delimiter">(</span>induct_tac l<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+
+<span class="command">subsection</span> <span class="verbatim">{* Dictionaries *}</span>
+
+<span class="command">datatype</span> dictionary <span class="delimiter">=</span> empty <span class="delimiter">|</span> record&#39; nat nat dictionary
+
+<span class="command">fun</span> insert <span class="delimiter">::</span> <span class="string">&quot;nat =&gt; nat =&gt; dictionary =&gt; dictionary&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;insert key value d = record&#39; key value d&quot;</span>
+
+<span class="command">fun</span> find <span class="delimiter">::</span> <span class="string">&quot;nat =&gt; dictionary =&gt; natoption&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;find key empty = None&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;find key (record&#39; k v d) = (if key = k then Some v else find key d)&quot;</span>
+
+<span class="comment">(* Exercise: 1 star (dictionary_invariant1) *)</span>
+
+<span class="command">theorem</span> dictionary_invariant1&#39;<span class="delimiter">:</span> <span class="string">&quot;&forall;(d :: dictionary) k (v :: nat). (find k (insert k v d)) = Some v&quot;</span>
+<span class="command">by</span> simp
+
+<span class="comment">(* Exercise: 1 star (dictionary_invariant2) *)</span>
+
+<span class="command">theorem</span> dictionary_invariant2&#39;<span class="delimiter">:</span> <span class="string">&quot;&forall;(d :: dictionary) (m :: nat) n o&#39;. m = n = False --&gt; find m d = find m (insert n o&#39; d)&quot;</span>
+<span class="command">by</span> simp
+
+<span class="command">end</span>
+</pre>
+
+</div>
+</body>
+</html>

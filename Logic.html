@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>Theory Logic (Isabelle2014: August 2014)</title>
+<link media="all" rel="stylesheet" type="text/css" href="isabelle.css"/>
+</head>
+
+<body>
+<div class="head"><h1>Theory Logic</h1>
+
+<span class="command">theory</span> <span class="name">Logic</span><br/>
+<span class="keyword">imports</span> <a href="../../HOL/HOL/Main.html"><span class="name">Main</span></a><br/>
+
+</div>
+<div class="source">
+<pre><span class="command">theory</span> Logic
+<span class="keyword2">imports</span> Main
+<span class="keyword2">begin</span>
+
+<span class="comment">(* In Isabelle, Prop in Coq is just a type &#39;bool&#39;, then things are much easier *)</span>
+
+<span class="command">section</span> <span class="verbatim">{* Logic *}</span>
+<span class="command">subsection</span> <span class="verbatim">{* Propositions *}</span>
+
+<span class="command">term</span> <span class="string">&quot;3 = 3&quot;</span>
+  <span class="comment">(* ==&gt; &quot;3 = 3&quot; :: &quot;bool&quot; *)</span>
+<span class="command">term</span> <span class="string">&quot;&forall;(n :: nat). n = 2&quot;</span>
+  <span class="comment">(* ==&gt; &quot;&forall;n. n = 2&quot; :: &quot;bool&quot; *)</span>
+
+<span class="command">subsection</span> <span class="verbatim">{* Proofs and Evidence *}</span>
+
+<span class="command">lemma</span> silly<span class="delimiter">:</span> <span class="string">&quot;0 * 3 = (0 :: nat)&quot;</span> <span class="command">by</span> simp
+<span class="command">thm</span> silly
+  <span class="comment">(* ==&gt; 0 * 3 = 0 *)</span>
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Implications are functions *}</span>
+
+<span class="command">lemma</span> silly_implication<span class="delimiter">:</span> <span class="string">&quot;(1 + 1) = 2 --&gt; 0 * 3 = (0 :: nat)&quot;</span> <span class="command">by</span> simp
+<span class="command">thm</span> silly_implication
+  <span class="comment">(* ==&gt; 1 + 1 = 2 --&gt; 0 * 3 = 0 *)</span>
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Defining Propositions *}</span>
+
+<span class="command">subsection</span> <span class="verbatim">{* Conjunction (Logical &quot;and&quot;) *}</span>
+
+<span class="comment">(*
+Inductive and (P Q : Prop) : Prop :=
+  conj : P -&gt; Q -&gt; (and P Q).
+*)</span>
+
+<span class="command">value</span> <span class="string">&quot;&lambda;x y. and&#39; x y&quot;</span>
+  <span class="comment">(* ==&gt; &quot;_&quot; :: &quot;bool =&gt; bool =&gt; bool&quot; *)</span>
+
+<span class="command">subsubsection</span> <span class="verbatim">{* &quot;Introducing&quot; Conjuctions *}</span>
+
+<span class="command">theorem</span> and_example<span class="delimiter">:</span> <span class="string">&quot;((0 :: nat) = 0) &and; ((4 :: nat) = 2 * 2)&quot;</span> <span class="command">by</span> simp
+
+<span class="command">subsubsection</span> <span class="verbatim">{* &quot;Eliminating&quot; conjunctions *}</span>
+
+<span class="command">theorem</span> proj1<span class="delimiter">:</span> <span class="string">&quot;&forall;p q. p &and; q --&gt; p&quot;</span> <span class="command">by</span> simp
+
+<span class="comment">(* Exercise: 1 star, optional (proj2) *)</span>
+
+<span class="command">theorem</span> proj2<span class="delimiter">:</span> <span class="string">&quot;&forall;p q. p &and; q --&gt; q&quot;</span> <span class="command">by</span> simp
+<span class="command">theorem</span> and_commut<span class="delimiter">:</span> <span class="string">&quot;&forall;p q. p &and; q --&gt; q &and; p&quot;</span> <span class="command">by</span> simp
+
+<span class="comment">(* Exercise: 2 stars (and_assoc) *)</span>
+
+<span class="command">theorem</span> and_assoc<span class="delimiter">:</span> <span class="string">&quot;&forall;p q r. p &and; (q &and; r) --&gt; (p &and; q) &and; r&quot;</span> <span class="command">by</span> simp
+
+<span class="command">subsection</span> <span class="verbatim">{* Iff *}</span>
+
+<span class="command">no_notation</span>
+  iff <span class="delimiter">(</span><span class="keyword2">infixr</span> <span class="string">&quot;&lt;-&gt;&quot;</span> 25<span class="delimiter">)</span>
+
+<span class="command">abbreviation</span> iff <span class="delimiter">(</span><span class="keyword2">infixr</span> <span class="string">&quot;&lt;-&gt;&quot;</span> 25<span class="delimiter">)</span> <span class="keyword2">where</span>
+  <span class="string">&quot;iff p q &equiv; (p --&gt; q) &and; (q --&gt; p)&quot;</span>
+
+<span class="command">theorem</span> iff_implies<span class="delimiter">:</span> <span class="string">&quot;&forall;p q. (p &lt;-&gt; q) --&gt; p --&gt; q&quot;</span> <span class="command">by</span> simp
+<span class="command">theorem</span> iff_sym<span class="delimiter">:</span> <span class="string">&quot;&forall;p q. (p &lt;-&gt; q) --&gt; (q &lt;-&gt; p)&quot;</span> <span class="command">by</span> simp
+
+<span class="comment">(* Exercise: 1 star, optional (iff_properties) *)</span>
+
+<span class="command">theorem</span> iff_refl<span class="delimiter">:</span> <span class="string">&quot;&forall;p. p &lt;-&gt; p&quot;</span> <span class="command">by</span> simp
+<span class="command">theorem</span> iff_trans<span class="delimiter">:</span> <span class="string">&quot;&forall;p q r. (p &lt;-&gt; q) --&gt; (q &lt;-&gt; r) --&gt; (p &lt;-&gt; r)&quot;</span> <span class="command">by</span> fastforce
+
+<span class="command">subsection</span> <span class="verbatim">{* Disjunction (Logical &quot;or&quot;) *}</span>
+<span class="command">subsubsection</span> <span class="verbatim">{* Implementing Disjunction *}</span>
+
+<span class="comment">(*
+Inductive or (P Q : Prop) : Prop :=
+  | or_introl : P -&gt; or P Q
+  | or_intror : Q -&gt; or P Q.
+*)</span>
+
+<span class="command">thm</span> <span class="string">&quot;disjI1&quot;</span>
+  <span class="comment">(* ?P ==&gt; ?P &or; ?Q *)</span>
+<span class="command">thm</span> <span class="string">&quot;disjI2&quot;</span>
+  <span class="comment">(* ?Q ==&gt; ?P &or; ?Q *)</span>
+
+<span class="command">theorem</span> or_commut<span class="delimiter">:</span> <span class="string">&quot;&forall;p q. p &or; q --&gt; q &or; p&quot;</span> <span class="command">by</span> simp
+
+<span class="command">theorem</span> or_distributes_over_and_1<span class="delimiter">:</span> <span class="string">&quot;&forall;p q r. p &or; (q &and; r) --&gt; (p &or; q) &and; (p &or; r)&quot;</span> <span class="command">by</span> simp
+
+<span class="comment">(* Exercise: 2 stars (or_distributes_over_and_2) *)</span>
+
+<span class="command">theorem</span> or_distributes_over_and_2<span class="delimiter">:</span> <span class="string">&quot;&forall;p q r. (p &or; q) &and; (p &or; r) --&gt; p &or; (q &and; r)&quot;</span> <span class="command">by</span> auto
+
+<span class="comment">(* Exercise: 1 star, optional (or_distributes_over_and) *)</span>
+
+<span class="command">theorem</span> or_distributes_over_and <span class="delimiter">:</span> <span class="string">&quot;&forall;P Q R. P &or; (Q &and; R) &lt;-&gt; (P &or; Q) &and; (P &or; R)&quot;</span> <span class="command">by</span> auto
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Relating &and; and &or; with andb and orb (advanced) *}</span>
+
+<span class="command">theorem</span> andb_prop<span class="delimiter">:</span> <span class="string">&quot;&forall;b c. b &amp; c = True --&gt; b = True &and; c = True&quot;</span> <span class="command">by</span> simp
+
+<span class="comment">(*
+Theorem andb_prop : &forall;b c,
+  andb b c = true -&gt; b = true &and; c = true.
+Proof.
+  (* WORKED IN CLASS *)
+  intros b c H.
+  destruct b.
+    Case &quot;b = true&quot;. destruct c.
+      SCase &quot;c = true&quot;. apply conj. reflexivity. reflexivity.
+      SCase &quot;c = false&quot;. inversion H.
+    Case &quot;b = false&quot;. inversion H. Qed.
+
+Theorem andb_true_intro : &forall;b c,
+  b = true &and; c = true -&gt; andb b c = true.
+Proof.
+  (* WORKED IN CLASS *)
+  intros b c H.
+  inversion H.
+  rewrite H0. rewrite H1. reflexivity. Qed.
+
+Exercise: 2 stars, optional (bool_prop)
+Theorem andb_false : &forall;b c,
+  andb b c = false -&gt; b = false &or; c = false.
+Proof.
+  (* FILL IN HERE *) Admitted.
+
+Theorem orb_prop : &forall;b c,
+  orb b c = true -&gt; b = true &or; c = true.
+Proof.
+  (* FILL IN HERE *) Admitted.
+
+Theorem orb_false_elim : &forall;b c,
+  orb b c = false -&gt; b = false &and; c = false.
+Proof.
+  (* FILL IN HERE *) Admitted.
+☐
+
+Falsehood
+Logical falsehood can be represented in Coq as an inductively defined proposition with no constructors.
+
+Inductive False : Prop := .
+
+Intuition: False is a proposition for which there is no way to give evidence.
+Since False has no constructors, inverting an assumption of type False always yields zero subgoals, allowing us to immediately prove any goal.
+
+Theorem False_implies_nonsense :
+  False -&gt; 2 + 2 = 5.
+Proof.
+  intros contra.
+  inversion contra. Qed.
+
+How does this work? The inversion tactic breaks contra into each of its possible cases, and yields a subgoal for each case. As contra is evidence for False, it has no possible cases, hence, there are no possible subgoals and the proof is done.
+Conversely, the only way to prove False is if there is already something nonsensical or contradictory in the context:
+
+Theorem nonsense_implies_False :
+  2 + 2 = 5 -&gt; False.
+Proof.
+  intros contra.
+  inversion contra. Qed.
+
+Actually, since the proof of False_implies_nonsense doesn&#39;t actually have anything to do with the specific nonsensical thing being proved; it can easily be generalized to work for an arbitrary P:
+
+Theorem ex_falso_quodlibet : &forall;(P:Prop),
+  False -&gt; P.
+Proof.
+  (* WORKED IN CLASS *)
+  intros P contra.
+  inversion contra. Qed.
+
+The Latin ex falso quodlibet means, literally, &quot;from falsehood follows whatever you please.&quot; This theorem is also known as the principle of explosion.
+
+
+
+*)</span>
+
+<span class="command">end</span>
+</pre>
+
+</div>
+</body>
+</html>
