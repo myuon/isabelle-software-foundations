@@ -30,10 +30,10 @@ subsection {* Conjunction (Logical "and") *}
 
 (*
 Inductive and (P Q : Prop) : Prop :=
-  conj : P -> Q -> (and P Q).
+  conj : P \<rightarrow> Q \<rightarrow> (and P Q).
 *)
 
-value "\<lambda>x y. and' x y"
+value "\<lambda>x y. x \<and> y"
   (* \<Longrightarrow> "_" :: "bool \<Rightarrow> bool \<Rightarrow> bool" *)
 
 subsubsection {* "Introducing" Conjuctions *}
@@ -84,94 +84,83 @@ thm "disjI2"
   (* ?Q \<Longrightarrow> ?P \<or> ?Q *)
 
 theorem or_commut: "\<forall>p q. p \<or> q \<longrightarrow> q \<or> p" by simp
-
 theorem or_distributes_over_and_1: "\<forall>p q r. p \<or> (q \<and> r) \<longrightarrow> (p \<or> q) \<and> (p \<or> r)" by simp
 
 (* Exercise: 2 stars (or_distributes_over_and_2) *)
-
 theorem or_distributes_over_and_2: "\<forall>p q r. (p \<or> q) \<and> (p \<or> r) \<longrightarrow> p \<or> (q \<and> r)" by auto
 
 (* Exercise: 1 star, optional (or_distributes_over_and) *)
-
 theorem or_distributes_over_and : "\<forall>P Q R. P \<or> (Q \<and> R) \<longleftrightarrow> (P \<or> Q) \<and> (P \<or> R)" by auto
 
 subsubsection {* Relating \<and> and \<or> with andb and orb (advanced) *}
 
-theorem andb_prop: "\<forall>b c. b & c = True \<longrightarrow> b = True \<and> c = True" by simp
+theorem andb_prop: "\<forall>b c. b \<and> c = True \<longrightarrow> b = True \<and> c = True" by simp
+theorem andb_true_intro: "\<forall>b c. b = True \<and> c = True \<longrightarrow> b \<and> c" by simp
 
-(*
-Theorem andb_prop : \<forall>b c,
-  andb b c = true \<rightarrow> b = true \<and> c = true.
-Proof.
-  (* WORKED IN CLASS *)
-  intros b c H.
-  destruct b.
-    Case "b = true". destruct c.
-      SCase "c = true". apply conj. reflexivity. reflexivity.
-      SCase "c = false". inversion H.
-    Case "b = false". inversion H. Qed.
+(* Exercise: 2 stars, optional (bool_prop) *)
+theorem andb_false: "\<forall>b c. b \<and> c = False \<longrightarrow> b = False \<or> c = False" by simp
+theorem orb_prop: "\<forall>b c. b \<or> c = True \<longrightarrow> b = True \<or> c = True" by simp
+theorem orb_false_elim: "\<forall>b c. (b \<or> c) = False \<longrightarrow> b = False \<and> c = False" by simp
 
-Theorem andb_true_intro : \<forall>b c,
-  b = true \<and> c = true \<rightarrow> andb b c = true.
-Proof.
-  (* WORKED IN CLASS *)
-  intros b c H.
-  inversion H.
-  rewrite H0. rewrite H1. reflexivity. Qed.
+subsection {* Falsehood *}
 
-Exercise: 2 stars, optional (bool_prop)
-Theorem andb_false : \<forall>b c,
-  andb b c = false \<rightarrow> b = false \<or> c = false.
-Proof.
-  (* FILL IN HERE *) Admitted.
+(* Inductive False : Prop := . *)
 
-Theorem orb_prop : \<forall>b c,
-  orb b c = true \<rightarrow> b = true \<or> c = true.
-Proof.
-  (* FILL IN HERE *) Admitted.
+theorem False_implies_nonsense: "False \<longrightarrow> 2 + 2 = 5" by simp
+theorem ex_falso_quodlibet: "\<forall>p. False \<longrightarrow> p" by simp
 
-Theorem orb_false_elim : \<forall>b c,
-  orb b c = false \<rightarrow> b = false \<and> c = false.
-Proof.
-  (* FILL IN HERE *) Admitted.
-☐
+subsubsection {* Truth *}
 
-Falsehood
-Logical falsehood can be represented in Coq as an inductively defined proposition with no constructors.
+(* Exercise: 2 stars, advanced (True) *)
 
-Inductive False : Prop := .
+subsection {* Negation *}
 
-Intuition: False is a proposition for which there is no way to give evidence.
-Since False has no constructors, inverting an assumption of type False always yields zero subgoals, allowing us to immediately prove any goal.
+(* Definition not (P:Prop) := P \<rightarrow> False. *)
 
-Theorem False_implies_nonsense :
-  False \<rightarrow> 2 + 2 = 5.
-Proof.
-  intros contra.
-  inversion contra. Qed.
+term "\<lambda>x. \<not> x"
+  (* \<Longrightarrow> "Not" :: "bool \<Rightarrow> bool" *)
 
-How does this work? The inversion tactic breaks contra into each of its possible cases, and yields a subgoal for each case. As contra is evidence for False, it has no possible cases, hence, there are no possible subgoals and the proof is done.
-Conversely, the only way to prove False is if there is already something nonsensical or contradictory in the context:
+theorem not_False: "\<not> False" by simp
+theorem contradiction_implies_anything: "\<forall>p q. (p \<and> \<not> p) \<longrightarrow> q" by simp
+theorem double_neg: "\<forall>p. p \<longrightarrow> ~~ p" by simp
 
-Theorem nonsense_implies_False :
-  2 + 2 = 5 \<rightarrow> False.
-Proof.
-  intros contra.
-  inversion contra. Qed.
+(* Exercise: 2 stars, advanced (double_neg_inf) *)
+(* Exercise: 2 stars (contrapositive) *)
 
-Actually, since the proof of False_implies_nonsense doesn't actually have anything to do with the specific nonsensical thing being proved; it can easily be generalized to work for an arbitrary P:
+theorem contrapositive: "\<forall>p q. (p \<longrightarrow> q) \<longrightarrow> (\<not> q \<longrightarrow> \<not> p)" by auto
 
-Theorem ex_falso_quodlibet : \<forall>(P:Prop),
-  False \<rightarrow> P.
-Proof.
-  (* WORKED IN CLASS *)
-  intros P contra.
-  inversion contra. Qed.
+(* Exercise: 1 star (not_both_true_and_false) *)
 
-The Latin ex falso quodlibet means, literally, "from falsehood follows whatever you please." This theorem is also known as the principle of explosion.
+theorem "\<not> (p \<and> \<not> p)" by simp
 
+(* Exercise: 1 star, advanced (informal_not_PNP) *)
 
+subsubsection {* Constructive logic *}
 
-*)
+theorem classis_double_neg: "~~ p \<longrightarrow> p" by simp
+
+(* Exercise: 5 stars, advanced, optional (classical_axioms) *)
+
+abbreviation "peirce \<equiv> \<forall>p q. ((p \<longrightarrow> q) \<longrightarrow> p) \<longrightarrow> p"
+abbreviation "classic \<equiv> \<forall>p. ~~p \<longrightarrow> p"
+abbreviation "excluded_middle \<equiv> \<forall>p. p \<or> \<not> p"
+abbreviation "de_morgan_not_and_not \<equiv> \<forall>p q. \<not> (\<not> p \<and> \<not> q) \<longrightarrow> p \<or> q"
+abbreviation "implies_to_or \<equiv> \<forall>p q. (p \<longrightarrow> q) \<longrightarrow> (\<not> p \<or> q)"
+
+(* Exercise: 3 stars (excluded_middle_irrefutable) *)
+
+theorem excluded_middle_irrefutable: "\<forall>p. \<not> \<not> (p \<or> \<not> p)" by simp
+
+subsubsection {* Inequality *}
+
+theorem not_false_then_true: "\<forall>b. b \<noteq> False \<longrightarrow> b = True" by simp
+
+(* Exercise: 2 stars (false_beq_nat) *)
+
+theorem false_beq_nat: "\<forall>n m. n \<noteq> m \<longrightarrow> n = m = False" by simp
+
+(* Exercise: 2 stars, optional (beq_nat_false) *)
+
+theorem beq_nat_false: "\<forall>n m. n = m = False \<longrightarrow> n \<noteq> m" by simp
 
 end

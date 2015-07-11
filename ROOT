@@ -1,10 +1,14 @@
 session "isabelle-software-foundations" = "HOL" +
-  theories [document = true]
-    "Basics"
-    "Lists"
-    "Poly"
-    "MoreCoq"
-    "Logic"
-    "Rel"
-  document_files
-    "root.tex"
+  theories
+    "src/Basics"
+    "src/Lists"
+    "src/Poly"
+    "src/MoreCoq"
+    "src/Logic"
+    "src/Rel"
+    "src/Prop"
+    "src/MoreLogic"
+    "src/ProofObjects"
+    "src/MoreInd"
+    "src/Imp"
+
