@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>Theory MoreLogic (Isabelle2014: August 2014)</title>
+<link media="all" rel="stylesheet" type="text/css" href="isabelle.css"/>
+</head>
+
+<body>
+<div class="head"><h1>Theory MoreLogic</h1>
+
+<span class="command">theory</span> <span class="name">MoreLogic</span><br/>
+<span class="keyword">imports</span> <a href="Prop.html"><span class="name">Prop</span></a><br/>
+
+</div>
+<div class="source">
+<pre><span class="command">theory</span> MoreLogic
+<span class="keyword2">imports</span> Main Prop
+<span class="keyword2">begin</span>
+
+<span class="command">section</span> <span class="verbatim">{* MoreLogic *}</span>
+<span class="command">subsection</span> <span class="verbatim">{* Existential Quantification *}</span>
+
+<span class="command">inductive</span> ex <span class="delimiter">::</span> <span class="string">&quot;(&#39;a =&gt; bool) =&gt; bool&quot;</span> <span class="keyword2">for</span> P <span class="delimiter">::</span> <span class="string">&quot;&#39;a =&gt; bool&quot;</span> <span class="keyword2">where</span>
+  ex_intro<span class="delimiter">:</span> <span class="string">&quot;P witness ==&gt; ex P&quot;</span>
+
+<span class="comment">(*
+Notation &quot;&#39;exists&#39; x , p&quot; := (ex (fun x =&gt; p))
+  (at level 200, x ident, right associativity) : type_scope.
+*)</span>
+
+<span class="command">lemma</span> exists_example_1<span class="delimiter">:</span> <span class="string">&quot;ex (&lambda;n :: nat. n + (n * n) = 6)&quot;</span>
+<span class="command">apply</span> <span class="delimiter">(</span>rule ex_intro <span class="delimiter">[</span>of _ 2<span class="delimiter">]</span><span class="delimiter">)</span> <span class="command">by</span> simp
+
+<span class="command">theorem</span> exists_example_2<span class="delimiter">:</span> <span class="string">&quot;ex (&lambda;m. n = 4 + m) ==&gt; ex (&lambda;l. n = 2 + l)&quot;</span>
+<span class="command">proof</span> <span class="delimiter">(</span>erule ex.inducts<span class="delimiter">)</span>
+  <span class="command">fix</span> witness <span class="command">assume</span> <span class="string">&quot;n = 4 + witness&quot;</span>
+  <span class="command">thus</span> <span class="string">&quot;ex (&lambda;l. n = 2 + l)&quot;</span>
+    <span class="command">apply</span> <span class="delimiter">(</span>rule_tac ex_intro <span class="delimiter">[</span>of _ <span class="string">&quot;2 + witness&quot;</span><span class="delimiter">]</span><span class="delimiter">)</span> <span class="command">by</span> simp
+<span class="command">qed</span>
+
+<span class="command">lemma</span> exists_example_3<span class="delimiter">:</span> <span class="string">&quot;ex (&lambda;n :: nat. even n &amp; beautiful n)&quot;</span>
+<span class="command">apply</span> <span class="delimiter">(</span>rule ex_intro <span class="delimiter">[</span>of _ 8<span class="delimiter">]</span><span class="delimiter">)</span> <span class="command">by</span> <span class="delimiter">(</span>simp add<span class="delimiter">:</span> eight_is_beautiful<span class="delimiter">)</span>
+
+<span class="comment">(* Exercise: 1 star, optional (english_exists) *)</span>
+<span class="comment">(* Exercise: 1 star (dist_not_exists) *)</span>
+<span class="command">theorem</span> dist_not_exists<span class="delimiter">:</span> <span class="string">&quot;(&forall;x. P x) ==&gt; &not; (ex (&lambda;x. &not; P x))&quot;</span>
+<span class="command">by</span> <span class="delimiter">(</span>auto<span class="delimiter">,</span> simp add<span class="delimiter">:</span> ex.simps<span class="delimiter">)</span>
+
+<span class="comment">(* Exercise: 3 stars, optional (not_exists_dist) *)</span>
+<span class="command">abbreviation</span> <span class="string">&quot;excluded_middle P &equiv; &forall;x. P x &or; &not; P x&quot;</span>
+
+<span class="command">theorem</span> not_exists_dist<span class="delimiter">:</span> <span class="string">&quot;excluded_middle P ==&gt; &not; (ex (&lambda;x. &not; P x)) --&gt; (&forall;x. P x)&quot;</span>
+<span class="command">by</span> <span class="delimiter">(</span>auto<span class="delimiter">,</span> simp add<span class="delimiter">:</span> ex.simps<span class="delimiter">)</span>
+
+<span class="comment">(* Exercise: 2 stars (dist_exists_or) *)</span>
+<span class="command">theorem</span> dist_exists_or<span class="delimiter">:</span> <span class="string">&quot;ex (&lambda;x. P x &or; Q x) &lt;-&gt; ex (&lambda;x. P x) &or; ex (&lambda;x. Q x)&quot;</span>
+<span class="command">by</span> <span class="delimiter">(</span>auto simp add<span class="delimiter">:</span> ex.simps<span class="delimiter">)</span>
+
+<span class="command">subsection</span> <span class="verbatim">{* Evidence-carrying booleans. *}</span>
+
+<span class="command">inductive</span> sumbool <span class="keyword2">where</span>
+  left<span class="delimiter">:</span> <span class="string">&quot;A ==&gt; sumbool A _&quot;</span>
+  <span class="delimiter">|</span> right<span class="delimiter">:</span> <span class="string">&quot;B ==&gt; sumbool _ B&quot;</span>
+
+<span class="command">notation</span>
+  sumbool <span class="delimiter">(</span><span class="string">&quot;{_} &brvbar; {_}&quot;</span><span class="delimiter">)</span>
+
+<span class="command">theorem</span> eq_nat_dec<span class="delimiter">:</span> <span class="string">&quot;!!n :: nat. {n = m} &brvbar; {n &ne; m}&quot;</span>
+<span class="command">apply</span> <span class="delimiter">(</span>induct m<span class="delimiter">)</span>
+  <span class="command">apply</span> <span class="delimiter">(</span>case_tac n<span class="delimiter">)</span>
+    <span class="command">apply</span> <span class="delimiter">(</span>rule left<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+    <span class="command">apply</span> <span class="delimiter">(</span>rule right<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+  <span class="command">apply</span> <span class="delimiter">(</span>case_tac n<span class="delimiter">)</span>
+    <span class="command">apply</span> <span class="delimiter">(</span>rule right<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+    <span class="command">apply</span> <span class="delimiter">(</span>simp<span class="delimiter">)</span>
+<span class="command">done</span>
+
+<span class="comment">(* In Isabelle, we only use the boolean type to decide whether a prop is true or not *)</span>
+<span class="command">fun</span> eq_nat_dec <span class="keyword2">where</span>
+  <span class="string">&quot;eq_nat_dec n m = (n = m)&quot;</span>
+
+<span class="command">fun</span> override&#39; <span class="keyword2">where</span>
+  <span class="string">&quot;override&#39; f k x = (&lambda;(k&#39; :: nat). if eq_nat_dec k k&#39; then x else f k&#39;)&quot;</span>
+
+<span class="command">theorem</span> override_same&#39;<span class="delimiter">:</span> <span class="string">&quot;f k1 = x1 ==&gt; (override&#39; f k1 x1) k2 = f k2&quot;</span>
+<span class="command">by</span> auto
+
+<span class="comment">(* Exercise: 1 star (override_shadow&#39;) *)</span>
+<span class="command">theorem</span> override_shadow&#39;<span class="delimiter">:</span> <span class="string">&quot;override&#39; (override&#39; f k1 x2) k1 x1 k2 = (override&#39; f k1 x1 k2)&quot;</span>
+<span class="command">by</span> simp
+
+<span class="command">subsection</span> <span class="verbatim">{* Additional Exercises *}</span>
+
+<span class="comment">(* Exercise: 3 stars (all_forallb) *)</span>
+<span class="command">inductive</span> all <span class="keyword2">for</span> P <span class="keyword2">where</span>
+  all_nil<span class="delimiter">:</span> <span class="string">&quot;all P []&quot;</span>
+  <span class="delimiter">|</span> all_cons<span class="delimiter">:</span> <span class="string">&quot;[| all P xs; P x |] ==&gt; all P (x # xs)&quot;</span>
+
+<span class="command">fun</span> forallb <span class="delimiter">::</span> <span class="string">&quot;(&#39;a =&gt; bool) =&gt; &#39;a list =&gt; bool&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;forallb test [] = True&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;forallb test (x # xs) = (test x &and; forallb test xs)&quot;</span>
+
+<span class="command">theorem</span> forallb_all<span class="delimiter">:</span> <span class="string">&quot;forallb test xs &lt;-&gt; all test xs&quot;</span>
+<span class="command">apply</span> <span class="delimiter">(</span>auto<span class="delimiter">)</span>
+  <span class="command">apply</span> <span class="delimiter">(</span>induct xs<span class="delimiter">,</span> rule<span class="delimiter">,</span> simp<span class="delimiter">,</span> rule all_cons<span class="delimiter">,</span> simp<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+  <span class="command">apply</span> <span class="delimiter">(</span>erule all.inducts<span class="delimiter">,</span> simp<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+<span class="command">done</span>
+
+<span class="comment">(* Exercise: 4 stars, advanced (filter_challenge) *)</span>
+<span class="command">inductive</span> in_order_merge <span class="delimiter">::</span> <span class="string">&quot;&#39;a list =&gt; &#39;a list =&gt; &#39;a list =&gt; bool&quot;</span> <span class="keyword2">where</span>
+  in_order_xs_nil<span class="delimiter">:</span> <span class="string">&quot;in_order_merge [] [] []&quot;</span>
+  <span class="delimiter">|</span> in_order_cons_r<span class="delimiter">:</span> <span class="string">&quot;in_order_merge xs ys zs ==&gt; in_order_merge xs (x # ys) (x # zs)&quot;</span>
+  <span class="delimiter">|</span> in_order_cons_l<span class="delimiter">:</span> <span class="string">&quot;in_order_merge xs ys zs ==&gt; in_order_merge (x # xs) ys (x # zs)&quot;</span>
+
+<span class="command">lemma</span> in_order_merge_ex1<span class="delimiter">:</span> <span class="string">&quot;in_order_merge [1,6,2] [4,3] [1,4,6,2,3]&quot;</span>
+<span class="command">by</span> <span class="delimiter">(</span>rule<span class="delimiter">+</span><span class="delimiter">)</span>
+
+<span class="command">theorem</span> filter_challenge<span class="delimiter">:</span>
+  <span class="string">&quot;!!l1 l2. [| in_order_merge l1 l2 l; forallb test l1; forallb (&lambda;x. &not; test x) l2 |] ==&gt; filter test l = l1&quot;</span>
+<span class="command">apply</span> <span class="delimiter">(</span>induct l<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+  <span class="command">apply</span> <span class="delimiter">(</span>erule in_order_merge.cases<span class="delimiter">,</span> simp<span class="delimiter">,</span> simp<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+  <span class="command">apply</span> <span class="delimiter">(</span>erule in_order_merge.cases<span class="delimiter">,</span> simp<span class="delimiter">,</span> simp<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+<span class="command">done</span>
+
+<span class="comment">(* Exercise: 5 stars, advanced, optional (filter_challenge_2) *)</span>
+<span class="command">lemma</span> forallt_filter<span class="delimiter">:</span> <span class="string">&quot;forallb test m ==&gt; filter test m = m&quot;</span>
+<span class="command">by</span> <span class="delimiter">(</span>induct m<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+
+<span class="command">lemma</span> subseq_length<span class="delimiter">:</span> <span class="string">&quot;m {subseq of} l ==&gt; length m &le; length l&quot;</span>
+<span class="command">by</span> <span class="delimiter">(</span>erule subseq.induct<span class="delimiter">,</span> simp<span class="delimiter">,</span> simp<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+
+<span class="command">lemma</span> subseq_filter<span class="delimiter">:</span> <span class="string">&quot;m {subseq of} l ==&gt; (filter test m) {subseq of} (filter test l)&quot;</span>
+<span class="command">apply</span> <span class="delimiter">(</span>erule subseq.induct<span class="delimiter">,</span> simp<span class="delimiter">,</span> rule subseq_nil<span class="delimiter">)</span>
+<span class="command">apply</span> <span class="delimiter">(</span>simp add<span class="delimiter">:</span> subseq_cons<span class="delimiter">)</span>
+<span class="command">apply</span> <span class="delimiter">(</span>simp add<span class="delimiter">:</span> subseq_cons_both<span class="delimiter">)</span>
+<span class="command">done</span>
+
+<span class="command">theorem</span> filter_challenge_2 <span class="delimiter">:</span> <span class="string">&quot;m {subseq of} l ==&gt; forallb test m ==&gt; length m &le; length (filter test l)&quot;</span>
+<span class="command">proof</span> -
+  <span class="command">assume</span> <span class="string">&quot;m {subseq of} l&quot;</span> <span class="string">&quot;forallb test m&quot;</span>
+  <span class="command">have</span> <span class="string">&quot;(filter test m) {subseq of} (filter test l)&quot;</span> <span class="command">by</span> <span class="delimiter">(</span>rule subseq_filter<span class="delimiter">,</span> simp add<span class="delimiter">:</span> <span class="altstring">`m {subseq of} l`</span><span class="delimiter">)</span>
+  <span class="command">hence</span> <span class="string">&quot;m {subseq of} (filter test l)&quot;</span> <span class="command">by</span> <span class="delimiter">(</span>simp add<span class="delimiter">:</span> <span class="altstring">`forallb test m`</span> forallt_filter<span class="delimiter">)</span>
+  <span class="command">thus</span> <span class="string">&quot;length m &le; length (filter test l)&quot;</span> <span class="command">by</span> <span class="delimiter">(</span>rule subseq_length<span class="delimiter">)</span>
+<span class="command">qed</span>
+
+<span class="comment">(* Exercise: 4 stars, advanced (no_repeats) *)</span>
+<span class="command">inductive</span> appears_in <span class="keyword2">where</span>
+  ai_here<span class="delimiter">:</span> <span class="string">&quot;appears_in a (a # l)&quot;</span>
+  <span class="delimiter">|</span> ai_later<span class="delimiter">:</span> <span class="string">&quot;appears_in a l ==&gt; appears_in a (b # l)&quot;</span>
+
+<span class="command">lemma</span> appears_in_app<span class="delimiter">:</span> <span class="string">&quot;!!ys. appears_in x (xs @ ys) ==&gt; appears_in x xs &or; appears_in x ys&quot;</span>
+<span class="command">apply</span> <span class="delimiter">(</span>induct xs<span class="delimiter">,</span> simp<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+<span class="command">apply</span> <span class="delimiter">(</span>erule appears_in.cases<span class="delimiter">)</span>
+<span class="command">proof</span> <span class="delimiter">(</span>simp add<span class="delimiter">:</span> ai_here<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+  <span class="command">fix</span> a <span class="delimiter">::</span> <span class="string">&quot;&#39;a&quot;</span> <span class="keyword2">and</span> xs <span class="delimiter">::</span> <span class="string">&quot;&#39;a list&quot;</span> <span class="keyword2">and</span> ys aa l b
+  <span class="command">assume</span> hyp<span class="delimiter">:</span> <span class="string">&quot;(!!ys. appears_in aa (xs @ ys) ==&gt; appears_in aa xs &or; appears_in aa ys)&quot;</span>
+  <span class="keyword2">and</span> assms<span class="delimiter">:</span> <span class="string">&quot;a = b &and; xs @ ys = l&quot;</span> <span class="string">&quot;appears_in aa l&quot;</span>
+  <span class="command">have</span> <span class="string">&quot;appears_in aa xs &or; appears_in aa ys&quot;</span>
+    <span class="command">by</span> <span class="delimiter">(</span>rule hyp<span class="delimiter">,</span> simp add<span class="delimiter">:</span> assms<span class="delimiter">)</span>
+  <span class="command">thus</span> <span class="string">&quot;appears_in aa (b # xs) &or; appears_in aa ys&quot;</span>
+    <span class="command">using</span> ai_later <span class="delimiter">[</span>of aa xs b<span class="delimiter">]</span> <span class="command">by</span> auto
+<span class="command">qed</span>
+
+<span class="command">lemma</span> ai_later_app<span class="delimiter">:</span> <span class="string">&quot;appears_in x xs ==&gt; appears_in x (ys @ xs)&quot;</span>
+<span class="command">by</span> <span class="delimiter">(</span>induct ys<span class="delimiter">,</span> simp<span class="delimiter">,</span> simp<span class="delimiter">,</span> rule<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+
+<span class="command">lemma</span> app_appears_in<span class="delimiter">:</span> <span class="string">&quot;appears_in x xs &or; appears_in x ys ==&gt; appears_in x (xs @ ys)&quot;</span>
+<span class="command">apply</span> auto
+<span class="command">apply</span> <span class="delimiter">(</span>erule appears_in.inducts<span class="delimiter">,</span> simp add<span class="delimiter">:</span> ai_here<span class="delimiter">,</span> simp add<span class="delimiter">:</span> ai_later<span class="delimiter">)</span>
+<span class="command">apply</span> <span class="delimiter">(</span>simp add<span class="delimiter">:</span> ai_later_app<span class="delimiter">)</span>
+<span class="command">done</span>
+
+<span class="command">fun</span> disjoint <span class="keyword2">where</span>
+  <span class="string">&quot;disjoint l1 l2 = (&forall;x. appears_in x l1 --&gt; &not; appears_in x l2)&quot;</span>
+
+<span class="command">inductive</span> no_repeat <span class="keyword2">where</span>
+  no_repeat_nil<span class="delimiter">:</span> <span class="string">&quot;no_repeat []&quot;</span>
+  <span class="delimiter">|</span> no_repeat_cons<span class="delimiter">:</span> <span class="string">&quot;[| no_repeat l; &not; appears_in x l |] ==&gt; no_repeat (x # l)&quot;</span>
+
+<span class="command">theorem</span> no_repeat_disjoint_app<span class="delimiter">:</span> <span class="string">&quot;[| no_repeat xs; no_repeat ys; disjoint xs ys |] ==&gt; no_repeat (xs @ ys)&quot;</span>
+<span class="command">apply</span> <span class="delimiter">(</span>induct xs<span class="delimiter">,</span> simp<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+<span class="command">by</span> <span class="delimiter">(</span>metis ai_here ai_later appears_in_app list.distinct<span class="delimiter">(</span>1<span class="delimiter">)</span> list.sel<span class="delimiter">(</span>1<span class="delimiter">)</span> list.sel<span class="delimiter">(</span>3<span class="delimiter">)</span> no_repeat.simps<span class="delimiter">)</span>
+
+<span class="comment">(* Exercise: 3 stars (nostutter) *)</span>
+<span class="command">inductive</span> nostutter <span class="keyword2">where</span>
+  nostutter_nil<span class="delimiter">:</span> <span class="string">&quot;nostutter []&quot;</span>
+  <span class="delimiter">|</span> nostutter_singleton<span class="delimiter">:</span> <span class="string">&quot;nostutter [x]&quot;</span>
+  <span class="delimiter">|</span> nostutter_cons<span class="delimiter">:</span> <span class="string">&quot;[| nostutter (x # xs); x &ne; y |] ==&gt; nostutter (y # x # xs)&quot;</span>
+
+<span class="command">lemma</span> test_nostutter_1<span class="delimiter">:</span> <span class="string">&quot;nostutter [(3::nat),1,4,1,5,6]&quot;</span>
+<span class="command">apply</span> rule<span class="delimiter">+</span> <span class="command">by</span> auto
+
+<span class="command">lemma</span> test_nostutter_2<span class="delimiter">:</span> <span class="string">&quot;nostutter []&quot;</span> <span class="command">by</span> rule
+<span class="command">lemma</span> test_nostutter_3<span class="delimiter">:</span> <span class="string">&quot;nostutter [5]&quot;</span> <span class="command">by</span> rule
+
+<span class="command">lemma</span> test_nostutter_4<span class="delimiter">:</span> <span class="string">&quot;&not; (nostutter [3 :: nat,1,1,4])&quot;</span>
+<span class="command">by</span> <span class="delimiter">(</span>rule<span class="delimiter">,</span> erule nostutter.cases<span class="delimiter">,</span> auto<span class="delimiter">,</span> erule nostutter.cases<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+
+<span class="comment">(* Exercise: 4 stars, advanced (pigeonhole principle) *)</span>
+<span class="command">lemma</span> app_length<span class="delimiter">:</span> <span class="string">&quot;length (l1 @ l2) = length l1 + length l2&quot;</span> <span class="command">by</span> simp
+
+<span class="command">lemma</span> appears_in_app_split<span class="delimiter">:</span> <span class="string">&quot;appears_in x l ==&gt; &exist;l1. &exist;l2. l = l1 @ (x # l2)&quot;</span>
+<span class="command">apply</span> <span class="delimiter">(</span>induct l<span class="delimiter">)</span>
+  <span class="command">apply</span> <span class="delimiter">(</span>erule appears_in.cases<span class="delimiter">,</span> simp<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+  <span class="command">apply</span> <span class="delimiter">(</span>erule appears_in.cases<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+<span class="command">proof</span> -
+  <span class="command">fix</span> b l1 l2
+  <span class="command">show</span> <span class="string">&quot;&exist;l1a l2a. b # l1 @ x # l2 = l1a @ x # l2a&quot;</span>
+    <span class="command">using</span> exI <span class="delimiter">[</span>of _ <span class="string">&quot;b # l1&quot;</span><span class="delimiter">]</span> exI <span class="delimiter">[</span>of _ l2<span class="delimiter">]</span> <span class="command">by</span> simp
+<span class="command">qed</span>
+
+<span class="command">inductive</span> repeats <span class="keyword2">where</span>
+  repeats_appear<span class="delimiter">:</span> <span class="string">&quot;appears_in x xs ==&gt; repeats (x # xs)&quot;</span>
+  <span class="delimiter">|</span> repeats_cons<span class="delimiter">:</span> <span class="string">&quot;repeats xs ==&gt; repeats (x # xs)&quot;</span>
+
+<span class="comment">(*
+theorem pigeonhole_principle: &quot;!!l2. (!!x. appears_in x l1 ==&gt; appears_in x l2) ==&gt; length l2 &lt; length l1 ==&gt; repeats l1&quot;
+sorry
+*)</span>
+
+<span class="comment">(*
+using excluded_middle, induction by l1 ?
+*)</span>
+
+<span class="command">end</span>
+</pre>
+
+</div>
+</body>
+</html>

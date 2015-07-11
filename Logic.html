@@ -50,7 +50,7 @@ Inductive and (P Q : Prop) : Prop :=
   conj : P -&gt; Q -&gt; (and P Q).
 *)</span>
 
-<span class="command">value</span> <span class="string">&quot;&lambda;x y. and&#39; x y&quot;</span>
+<span class="command">value</span> <span class="string">&quot;&lambda;x y. x &and; y&quot;</span>
   <span class="comment">(* ==&gt; &quot;_&quot; :: &quot;bool =&gt; bool =&gt; bool&quot; *)</span>
 
 <span class="command">subsubsection</span> <span class="verbatim">{* &quot;Introducing&quot; Conjuctions *}</span>
@@ -101,95 +101,84 @@ Inductive or (P Q : Prop) : Prop :=
   <span class="comment">(* ?Q ==&gt; ?P &or; ?Q *)</span>
 
 <span class="command">theorem</span> or_commut<span class="delimiter">:</span> <span class="string">&quot;&forall;p q. p &or; q --&gt; q &or; p&quot;</span> <span class="command">by</span> simp
-
 <span class="command">theorem</span> or_distributes_over_and_1<span class="delimiter">:</span> <span class="string">&quot;&forall;p q r. p &or; (q &and; r) --&gt; (p &or; q) &and; (p &or; r)&quot;</span> <span class="command">by</span> simp
 
 <span class="comment">(* Exercise: 2 stars (or_distributes_over_and_2) *)</span>
-
 <span class="command">theorem</span> or_distributes_over_and_2<span class="delimiter">:</span> <span class="string">&quot;&forall;p q r. (p &or; q) &and; (p &or; r) --&gt; p &or; (q &and; r)&quot;</span> <span class="command">by</span> auto
 
 <span class="comment">(* Exercise: 1 star, optional (or_distributes_over_and) *)</span>
-
 <span class="command">theorem</span> or_distributes_over_and <span class="delimiter">:</span> <span class="string">&quot;&forall;P Q R. P &or; (Q &and; R) &lt;-&gt; (P &or; Q) &and; (P &or; R)&quot;</span> <span class="command">by</span> auto
 
 <span class="command">subsubsection</span> <span class="verbatim">{* Relating &and; and &or; with andb and orb (advanced) *}</span>
 
-<span class="command">theorem</span> andb_prop<span class="delimiter">:</span> <span class="string">&quot;&forall;b c. b &amp; c = True --&gt; b = True &and; c = True&quot;</span> <span class="command">by</span> simp
+<span class="command">theorem</span> andb_prop<span class="delimiter">:</span> <span class="string">&quot;&forall;b c. b &and; c = True --&gt; b = True &and; c = True&quot;</span> <span class="command">by</span> simp
+<span class="command">theorem</span> andb_true_intro<span class="delimiter">:</span> <span class="string">&quot;&forall;b c. b = True &and; c = True --&gt; b &and; c&quot;</span> <span class="command">by</span> simp
 
-<span class="comment">(*
-Theorem andb_prop : &forall;b c,
-  andb b c = true -&gt; b = true &and; c = true.
-Proof.
-  (* WORKED IN CLASS *)
-  intros b c H.
-  destruct b.
-    Case &quot;b = true&quot;. destruct c.
-      SCase &quot;c = true&quot;. apply conj. reflexivity. reflexivity.
-      SCase &quot;c = false&quot;. inversion H.
-    Case &quot;b = false&quot;. inversion H. Qed.
+<span class="comment">(* Exercise: 2 stars, optional (bool_prop) *)</span>
+<span class="command">theorem</span> andb_false<span class="delimiter">:</span> <span class="string">&quot;&forall;b c. b &and; c = False --&gt; b = False &or; c = False&quot;</span> <span class="command">by</span> simp
+<span class="command">theorem</span> orb_prop<span class="delimiter">:</span> <span class="string">&quot;&forall;b c. b &or; c = True --&gt; b = True &or; c = True&quot;</span> <span class="command">by</span> simp
+<span class="command">theorem</span> orb_false_elim<span class="delimiter">:</span> <span class="string">&quot;&forall;b c. (b &or; c) = False --&gt; b = False &and; c = False&quot;</span> <span class="command">by</span> simp
 
-Theorem andb_true_intro : &forall;b c,
-  b = true &and; c = true -&gt; andb b c = true.
-Proof.
-  (* WORKED IN CLASS *)
-  intros b c H.
-  inversion H.
-  rewrite H0. rewrite H1. reflexivity. Qed.
+<span class="command">subsection</span> <span class="verbatim">{* Falsehood *}</span>
 
-Exercise: 2 stars, optional (bool_prop)
-Theorem andb_false : &forall;b c,
-  andb b c = false -&gt; b = false &or; c = false.
-Proof.
-  (* FILL IN HERE *) Admitted.
+<span class="comment">(* Inductive False : Prop := . *)</span>
 
-Theorem orb_prop : &forall;b c,
-  orb b c = true -&gt; b = true &or; c = true.
-Proof.
-  (* FILL IN HERE *) Admitted.
+<span class="command">theorem</span> False_implies_nonsense<span class="delimiter">:</span> <span class="string">&quot;False --&gt; 2 + 2 = 5&quot;</span> <span class="command">by</span> simp
+<span class="command">theorem</span> ex_falso_quodlibet<span class="delimiter">:</span> <span class="string">&quot;&forall;p. False --&gt; p&quot;</span> <span class="command">by</span> simp
 
-Theorem orb_false_elim : &forall;b c,
-  orb b c = false -&gt; b = false &and; c = false.
-Proof.
-  (* FILL IN HERE *) Admitted.
-☐
+<span class="command">subsubsection</span> <span class="verbatim">{* Truth *}</span>
 
-Falsehood
-Logical falsehood can be represented in Coq as an inductively defined proposition with no constructors.
+<span class="comment">(* Exercise: 2 stars, advanced (True) *)</span>
 
-Inductive False : Prop := .
+<span class="command">subsection</span> <span class="verbatim">{* Negation *}</span>
 
-Intuition: False is a proposition for which there is no way to give evidence.
-Since False has no constructors, inverting an assumption of type False always yields zero subgoals, allowing us to immediately prove any goal.
+<span class="comment">(* Definition not (P:Prop) := P -&gt; False. *)</span>
 
-Theorem False_implies_nonsense :
-  False -&gt; 2 + 2 = 5.
-Proof.
-  intros contra.
-  inversion contra. Qed.
+<span class="command">term</span> <span class="string">&quot;&lambda;x. &not; x&quot;</span>
+  <span class="comment">(* ==&gt; &quot;Not&quot; :: &quot;bool =&gt; bool&quot; *)</span>
 
-How does this work? The inversion tactic breaks contra into each of its possible cases, and yields a subgoal for each case. As contra is evidence for False, it has no possible cases, hence, there are no possible subgoals and the proof is done.
-Conversely, the only way to prove False is if there is already something nonsensical or contradictory in the context:
+<span class="command">theorem</span> not_False<span class="delimiter">:</span> <span class="string">&quot;&not; False&quot;</span> <span class="command">by</span> simp
+<span class="command">theorem</span> contradiction_implies_anything<span class="delimiter">:</span> <span class="string">&quot;&forall;p q. (p &and; &not; p) --&gt; q&quot;</span> <span class="command">by</span> simp
+<span class="command">theorem</span> double_neg<span class="delimiter">:</span> <span class="string">&quot;&forall;p. p --&gt; ~~ p&quot;</span> <span class="command">by</span> simp
 
-Theorem nonsense_implies_False :
-  2 + 2 = 5 -&gt; False.
-Proof.
-  intros contra.
-  inversion contra. Qed.
+<span class="comment">(* Exercise: 2 stars, advanced (double_neg_inf) *)</span>
+<span class="comment">(* Exercise: 2 stars (contrapositive) *)</span>
 
-Actually, since the proof of False_implies_nonsense doesn&#39;t actually have anything to do with the specific nonsensical thing being proved; it can easily be generalized to work for an arbitrary P:
+<span class="command">theorem</span> contrapositive<span class="delimiter">:</span> <span class="string">&quot;&forall;p q. (p --&gt; q) --&gt; (&not; q --&gt; &not; p)&quot;</span> <span class="command">by</span> auto
 
-Theorem ex_falso_quodlibet : &forall;(P:Prop),
-  False -&gt; P.
-Proof.
-  (* WORKED IN CLASS *)
-  intros P contra.
-  inversion contra. Qed.
+<span class="comment">(* Exercise: 1 star (not_both_true_and_false) *)</span>
 
-The Latin ex falso quodlibet means, literally, &quot;from falsehood follows whatever you please.&quot; This theorem is also known as the principle of explosion.
+<span class="command">theorem</span> <span class="string">&quot;&not; (p &and; &not; p)&quot;</span> <span class="command">by</span> simp
 
+<span class="comment">(* Exercise: 1 star, advanced (informal_not_PNP) *)</span>
 
+<span class="command">subsubsection</span> <span class="verbatim">{* Constructive logic *}</span>
 
-*)</span>
+<span class="command">theorem</span> classis_double_neg<span class="delimiter">:</span> <span class="string">&quot;~~ p --&gt; p&quot;</span> <span class="command">by</span> simp
+
+<span class="comment">(* Exercise: 5 stars, advanced, optional (classical_axioms) *)</span>
+
+<span class="command">abbreviation</span> <span class="string">&quot;peirce &equiv; &forall;p q. ((p --&gt; q) --&gt; p) --&gt; p&quot;</span>
+<span class="command">abbreviation</span> <span class="string">&quot;classic &equiv; &forall;p. ~~p --&gt; p&quot;</span>
+<span class="command">abbreviation</span> <span class="string">&quot;excluded_middle &equiv; &forall;p. p &or; &not; p&quot;</span>
+<span class="command">abbreviation</span> <span class="string">&quot;de_morgan_not_and_not &equiv; &forall;p q. &not; (&not; p &and; &not; q) --&gt; p &or; q&quot;</span>
+<span class="command">abbreviation</span> <span class="string">&quot;implies_to_or &equiv; &forall;p q. (p --&gt; q) --&gt; (&not; p &or; q)&quot;</span>
+
+<span class="comment">(* Exercise: 3 stars (excluded_middle_irrefutable) *)</span>
+
+<span class="command">theorem</span> excluded_middle_irrefutable<span class="delimiter">:</span> <span class="string">&quot;&forall;p. &not; &not; (p &or; &not; p)&quot;</span> <span class="command">by</span> simp
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Inequality *}</span>
+
+<span class="command">theorem</span> not_false_then_true<span class="delimiter">:</span> <span class="string">&quot;&forall;b. b &ne; False --&gt; b = True&quot;</span> <span class="command">by</span> simp
+
+<span class="comment">(* Exercise: 2 stars (false_beq_nat) *)</span>
+
+<span class="command">theorem</span> false_beq_nat<span class="delimiter">:</span> <span class="string">&quot;&forall;n m. n &ne; m --&gt; n = m = False&quot;</span> <span class="command">by</span> simp
+
+<span class="comment">(* Exercise: 2 stars, optional (beq_nat_false) *)</span>
+
+<span class="command">theorem</span> beq_nat_false<span class="delimiter">:</span> <span class="string">&quot;&forall;n m. n = m = False --&gt; n &ne; m&quot;</span> <span class="command">by</span> simp
 
 <span class="command">end</span>
 </pre>

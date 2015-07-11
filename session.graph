@@ -113,3 +113,8 @@
 "MoreCoq" "Unsorted/isabelle-software-foundations/MoreCoq" "isabelle-software-foundations" + "MoreCoq.html" > "HOL/HOL/Main" ;
 "Logic" "Unsorted/isabelle-software-foundations/Logic" "isabelle-software-foundations" + "Logic.html" > "HOL/HOL/Main" ;
 "Rel" "Unsorted/isabelle-software-foundations/Rel" "isabelle-software-foundations" + "Rel.html" > "HOL/HOL/Main" ;
+"Prop" "Unsorted/isabelle-software-foundations/Prop" "isabelle-software-foundations" + "Prop.html" > "HOL/HOL/Main" ;
+"MoreLogic" "Unsorted/isabelle-software-foundations/MoreLogic" "isabelle-software-foundations" + "MoreLogic.html" > "Unsorted/isabelle-software-foundations/Prop" ;
+"ProofObjects" "Unsorted/isabelle-software-foundations/ProofObjects" "isabelle-software-foundations" + "ProofObjects.html" > "HOL/HOL/Main" ;
+"MoreInd" "Unsorted/isabelle-software-foundations/MoreInd" "isabelle-software-foundations" + "MoreInd.html" > "Unsorted/isabelle-software-foundations/Prop" ;
+"Imp" "Unsorted/isabelle-software-foundations/Imp" "isabelle-software-foundations" + "Imp.html" > "Unsorted/isabelle-software-foundations/MoreLogic" ;

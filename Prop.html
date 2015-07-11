@@ -1,0 +1,528 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>Theory Prop (Isabelle2014: August 2014)</title>
+<link media="all" rel="stylesheet" type="text/css" href="isabelle.css"/>
+</head>
+
+<body>
+<div class="head"><h1>Theory Prop</h1>
+
+<span class="command">theory</span> <span class="name">Prop</span><br/>
+<span class="keyword">imports</span> <a href="../../HOL/HOL/Main.html"><span class="name">Main</span></a><br/>
+
+</div>
+<div class="source">
+<pre><span class="command">theory</span> Prop
+<span class="keyword2">imports</span> Main
+<span class="keyword2">begin</span>
+
+<span class="command">section</span> <span class="verbatim">{* Prop *}</span>
+<span class="command">subsection</span> <span class="verbatim">{* From Boolean Functions to Propositions *}</span>
+
+<span class="command">abbreviation</span> <span class="string">&quot;even n &equiv; (n mod 2 = 0)&quot;</span>
+
+<span class="command">subsection</span> <span class="verbatim">{* Inductively Defined Propositions *}</span>
+
+<span class="command">inductive</span> ev <span class="keyword2">where</span>
+  ev_0<span class="delimiter">:</span> <span class="string">&quot;ev 0&quot;</span>
+  <span class="delimiter">|</span> ev_SS<span class="delimiter">:</span> <span class="string">&quot;ev n ==&gt; ev (Suc (Suc n))&quot;</span>
+
+<span class="comment">(* Exercise: 1 star (double_even) *)</span>
+
+<span class="command">fun</span> double <span class="keyword2">where</span>
+  <span class="string">&quot;double n = n + n&quot;</span>
+<span class="command">theorem</span> double_even<span class="delimiter">:</span> <span class="string">&quot;&forall;n. ev (double n)&quot;</span>
+<span class="command">apply</span> auto <span class="command">by</span> <span class="delimiter">(</span>induct_tac n<span class="delimiter">,</span> simp<span class="delimiter">,</span> rule ev_0<span class="delimiter">,</span> simp<span class="delimiter">,</span> rule ev_SS<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Discussion: Computational vs. Inductive Definitions *}</span>
+
+<span class="comment">(* Exercise: 1 star (ev__even) *)</span>
+
+<span class="command">theorem</span> ev_even<span class="delimiter">:</span> <span class="string">&quot;&forall;n :: nat. ev n --&gt; even n&quot;</span>
+<span class="command">apply</span> auto <span class="command">by</span> <span class="delimiter">(</span>erule ev.induct<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+
+<span class="comment">(* Exercise: 1 star (l_fails) *)</span>
+<span class="comment">(* Exercise: 2 stars (ev_sum) *)</span>
+
+<span class="command">theorem</span> ev_sum<span class="delimiter">:</span> <span class="string">&quot;&forall;n m. ev n --&gt; ev m --&gt; ev (n+m)&quot;</span>
+<span class="command">apply</span> auto <span class="command">by</span> <span class="delimiter">(</span>erule ev.induct<span class="delimiter">,</span> auto simp add<span class="delimiter">:</span> ev_SS<span class="delimiter">)</span>
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Example *}</span>
+<span class="command">subsubsection</span> <span class="verbatim">{* Inference Rules *}</span>
+
+<span class="comment">(* Exercise: 1 star (varieties_of_beauty) *)</span>
+
+<span class="command">inductive</span> beautiful <span class="delimiter">::</span> <span class="string">&quot;nat =&gt; bool&quot;</span> <span class="keyword2">where</span>
+  b_0<span class="delimiter">:</span> <span class="string">&quot;beautiful 0&quot;</span>
+  <span class="delimiter">|</span> b_3<span class="delimiter">:</span> <span class="string">&quot;beautiful 3&quot;</span>
+  <span class="delimiter">|</span> b_5<span class="delimiter">:</span> <span class="string">&quot;beautiful 5&quot;</span>
+  <span class="delimiter">|</span> b_sum<span class="delimiter">:</span> <span class="string">&quot;[| beautiful n; beautiful m |] ==&gt; beautiful (n + m)&quot;</span>
+
+<span class="command">theorem</span> three_is_beautiful<span class="delimiter">:</span> <span class="string">&quot;beautiful 3&quot;</span> <span class="command">using</span> b_3 <span class="command">by</span> simp
+<span class="command">theorem</span> eight_is_beautiful<span class="delimiter">:</span> <span class="string">&quot;beautiful 8&quot;</span> <span class="command">using</span> beautiful.b_sum <span class="delimiter">[</span>of 3 5<span class="delimiter">]</span> b_3 b_5 <span class="command">by</span> simp
+<span class="command">theorem</span> beautiful_plus_eight<span class="delimiter">:</span> <span class="string">&quot;&forall;n. beautiful n --&gt; beautiful (8 + n)&quot;</span>
+<span class="command">apply</span> auto <span class="command">by</span> <span class="delimiter">(</span>rule<span class="delimiter">,</span> auto simp add<span class="delimiter">:</span> eight_is_beautiful<span class="delimiter">)</span>
+
+<span class="comment">(* Exercise: 2 stars (b_times2) *)</span>
+<span class="command">theorem</span> b_times2<span class="delimiter">:</span> <span class="string">&quot;&forall;n. beautiful n --&gt; beautiful (2 * n)&quot;</span> <span class="command">by</span> <span class="delimiter">(</span>simp add<span class="delimiter">:</span> mult_2 b_sum<span class="delimiter">)</span>
+
+<span class="comment">(* Exercise: 3 stars (b_timesm) *)</span>
+<span class="command">theorem</span> b_timesm<span class="delimiter">:</span> <span class="string">&quot;&forall;n m. beautiful n --&gt; beautiful (m * n)&quot;</span>
+<span class="command">apply</span> auto <span class="command">by</span> <span class="delimiter">(</span>induct_tac m<span class="delimiter">,</span> auto simp add<span class="delimiter">:</span> b_0 b_sum<span class="delimiter">)</span>
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Induction Over Evidence *}</span>
+
+<span class="command">inductive</span> gorgeous <span class="delimiter">::</span> <span class="string">&quot;nat =&gt; bool&quot;</span> <span class="keyword2">where</span>
+  g_0<span class="delimiter">:</span> <span class="string">&quot;gorgeous 0&quot;</span>
+  <span class="delimiter">|</span> g_plus3<span class="delimiter">:</span> <span class="string">&quot;gorgeous n ==&gt; gorgeous (3+n)&quot;</span>
+  <span class="delimiter">|</span> g_plus5<span class="delimiter">:</span> <span class="string">&quot;gorgeous n ==&gt; gorgeous (5+n)&quot;</span>
+
+<span class="comment">(* Exercise: 1 star (gorgeous_tree) *)</span>
+<span class="comment">(* Exercise: 1 star (gorgeous_plus13) *)</span>
+
+<span class="command">theorem</span> gorgeous_plus13<span class="delimiter">:</span> <span class="string">&quot;&forall;n :: nat. gorgeous n --&gt; gorgeous (13+n)&quot;</span>
+<span class="command">proof</span> auto
+  <span class="command">fix</span> n <span class="delimiter">::</span> nat <span class="command">assume</span> <span class="string">&quot;gorgeous n&quot;</span>
+  <span class="command">hence</span> <span class="string">&quot;gorgeous (3 + n)&quot;</span> <span class="command">using</span> g_plus3 <span class="command">by</span> simp
+  <span class="command">hence</span> <span class="string">&quot;gorgeous (8 + n)&quot;</span> <span class="command">using</span> g_plus5 <span class="delimiter">[</span>of <span class="string">&quot;3 + n&quot;</span><span class="delimiter">]</span> <span class="command">by</span> simp
+  <span class="command">thus</span> <span class="string">&quot;gorgeous (13 + n)&quot;</span> <span class="command">using</span> g_plus5 <span class="delimiter">[</span>of <span class="string">&quot;8 + n&quot;</span><span class="delimiter">]</span> <span class="command">by</span> simp
+<span class="command">qed</span>
+
+<span class="command">theorem</span> gorgeous_beautiful<span class="delimiter">:</span> <span class="string">&quot;&forall;n :: nat. gorgeous n --&gt; beautiful n&quot;</span>
+<span class="command">apply</span> auto <span class="command">by</span> <span class="delimiter">(</span>erule gorgeous.induct<span class="delimiter">,</span> auto simp add<span class="delimiter">:</span> b_0 b_3 b_5 b_sum<span class="delimiter">)</span>
+
+<span class="comment">(* Exercise: 2 stars (gorgeous_sum) *)</span>
+
+<span class="command">theorem</span> gorgeous_sum<span class="delimiter">:</span> <span class="string">&quot;&forall;n m :: nat. gorgeous n --&gt; gorgeous m --&gt; gorgeous (n + m)&quot;</span>
+<span class="command">apply</span> auto <span class="command">apply</span> <span class="delimiter">(</span>erule gorgeous.induct<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+<span class="command">apply</span> <span class="delimiter">(</span>fastforce simp add<span class="delimiter">:</span> add.assoc g_plus3<span class="delimiter">)</span>
+<span class="command">apply</span> <span class="delimiter">(</span>fastforce simp add<span class="delimiter">:</span> add.assoc g_plus5<span class="delimiter">)</span>
+<span class="command">done</span>
+
+<span class="comment">(* Exercise: 3 stars, advanced (beautiful__gorgeous) *)</span>
+
+<span class="command">theorem</span> beautiful_gorgeous<span class="delimiter">:</span> <span class="string">&quot;&forall;n :: nat. beautiful n --&gt; gorgeous n&quot;</span>
+<span class="command">apply</span> auto <span class="command">apply</span> <span class="delimiter">(</span>erule beautiful.induct<span class="delimiter">,</span> rule<span class="delimiter">)</span>
+<span class="command">using</span> g_plus3 <span class="delimiter">[</span>OF g_0<span class="delimiter">]</span> <span class="command">apply</span> simp
+<span class="command">using</span> g_plus5 <span class="delimiter">[</span>OF g_0<span class="delimiter">]</span> <span class="command">apply</span> simp
+<span class="command">apply</span> <span class="delimiter">(</span>simp add<span class="delimiter">:</span> gorgeous_sum<span class="delimiter">)</span>
+<span class="command">done</span>
+
+<span class="comment">(* Exercise: 3 stars, optional (g_times2) *)</span>
+
+<span class="command">lemma</span> helper_g_times2<span class="delimiter">:</span> <span class="string">&quot;&forall;x y z :: nat. x + (z + y) = z + x + y&quot;</span> <span class="command">by</span> simp
+
+<span class="command">theorem</span> g_times2<span class="delimiter">:</span> <span class="string">&quot;&forall;n. gorgeous n --&gt; gorgeous (2 * n)&quot;</span>
+<span class="command">by</span> <span class="delimiter">(</span>auto simp add<span class="delimiter">:</span> mult_2 gorgeous_sum<span class="delimiter">)</span>
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Inversion on Evidence *}</span>
+
+<span class="command">fun</span> pred <span class="delimiter">::</span> <span class="string">&quot;nat =&gt; nat&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;pred 0 = 0&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;pred (Suc n) = n&quot;</span>
+
+<span class="command">theorem</span> ev_minus2<span class="delimiter">:</span> <span class="string">&quot;&forall;n. ev n --&gt; ev (pred (pred n))&quot;</span>
+<span class="command">apply</span> auto <span class="command">by</span> <span class="delimiter">(</span>erule ev.induct<span class="delimiter">,</span> auto simp add<span class="delimiter">:</span> ev_0<span class="delimiter">)</span>
+
+<span class="comment">(* Exercise: 1 star, optional (ev_minus2_n) *)</span>
+
+<span class="command">theorem</span> SSev_even<span class="delimiter">:</span> <span class="string">&quot;ev (Suc (Suc n)) ==&gt; ev n&quot;</span>
+<span class="command">using</span> ev_minus2 <span class="command">by</span> fastforce
+
+<span class="command">subsubsection</span> <span class="verbatim">{* inversion revisited *}</span>
+
+<span class="comment">(* Exercise: 1 star (inversion_practice) *)</span>
+<span class="command">theorem</span> SSSSev_even<span class="delimiter">:</span> <span class="string">&quot;&forall;n. ev (Suc (Suc (Suc (Suc n)))) --&gt; ev n&quot;</span>
+<span class="command">using</span> SSev_even <span class="command">by</span> fastforce
+
+<span class="command">theorem</span> even5_nonsense<span class="delimiter">:</span> <span class="string">&quot;ev 5 --&gt; 2 + 2 = 9&quot;</span>
+<span class="command">using</span> SSSSev_even <span class="command">apply</span> simp
+<span class="command">using</span> One_nat_def ev.simps
+<span class="command">by</span> <span class="delimiter">(</span>metis inc.simps Suc_eq_numeral Suc_numeral add_One numeral_One old.nat.distinct<span class="delimiter">(</span>2<span class="delimiter">)</span><span class="delimiter">)</span>
+
+<span class="comment">(* Exercise: 3 stars, advanced (ev_ev__ev) *)</span>
+<span class="command">lemma</span> ev_in<span class="delimiter">:</span> <span class="string">&quot;ev n ==&gt; n mod 2 = 0&quot;</span>
+<span class="command">by</span> <span class="delimiter">(</span>erule ev.inducts<span class="delimiter">,</span> simp add<span class="delimiter">:</span> ev.simps<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+
+<span class="command">theorem</span> ev_ev_ev<span class="delimiter">:</span> <span class="string">&quot;&forall;n m. ev (n+m) --&gt; ev n --&gt; ev m&quot;</span>
+<span class="command">proof</span> auto
+  <span class="command">fix</span> n <span class="delimiter">::</span> nat <span class="keyword2">and</span> m <span class="delimiter">::</span> nat
+  <span class="command">assume</span> a1<span class="delimiter">:</span> <span class="string">&quot;ev n&quot;</span>
+  <span class="command">assume</span> <span class="string">&quot;ev (n + m)&quot;</span>
+  <span class="command">hence</span> <span class="string">&quot;ev (m + n)&quot;</span> <span class="command">by</span> <span class="delimiter">(</span>simp add<span class="delimiter">:</span> add.commute<span class="delimiter">)</span>
+  <span class="command">hence</span> <span class="string">&quot;even m&quot;</span> <span class="command">using</span> a1 <span class="command">by</span> <span class="delimiter">(</span>metis <span class="delimiter">(</span>no_types<span class="delimiter">)</span> ev_in mod_add_right_eq monoid_add_class.add.right_neutral<span class="delimiter">)</span>
+  <span class="command">thus</span> <span class="string">&quot;ev m&quot;</span> <span class="command">by</span> <span class="delimiter">(</span>metis double.simps double_even mod_eqD monoid_add_class.add.left_neutral mult.commute mult_2<span class="delimiter">)</span>
+<span class="command">qed</span>
+
+<span class="comment">(* Exercise: 3 stars, optional (ev_plus_plus) *)</span>
+<span class="command">theorem</span> ev_plus_plus <span class="delimiter">:</span> <span class="string">&quot;&forall;n m p. ev (n+m) --&gt; ev (n+p) --&gt; ev (m+p)&quot;</span>
+<span class="command">apply</span> auto
+<span class="command">apply</span> <span class="delimiter">(</span>erule_tac ev.cases<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+<span class="command">proof</span> -
+  <span class="command">fix</span> n <span class="delimiter">::</span> nat <span class="keyword2">and</span> m <span class="delimiter">::</span> nat <span class="keyword2">and</span> p <span class="delimiter">::</span> nat <span class="keyword2">and</span> na <span class="delimiter">::</span> nat
+  <span class="command">assume</span> a1<span class="delimiter">:</span> <span class="string">&quot;ev (n + p)&quot;</span>
+  <span class="command">assume</span> a2<span class="delimiter">:</span> <span class="string">&quot;n + m = Suc (Suc na)&quot;</span>
+  <span class="command">assume</span> a3<span class="delimiter">:</span> <span class="string">&quot;ev na&quot;</span>
+  <span class="command">have</span> <span class="string">&quot;!!x<span class="hidden">&#8681;</span><sub>1</sub>. ev (x<span class="hidden">&#8681;</span><sub>1</sub> + x<span class="hidden">&#8681;</span><sub>1</sub>)&quot;</span> <span class="command">using</span> double_even <span class="command">by</span> auto
+  <span class="command">hence</span> <span class="string">&quot;!!x<span class="hidden">&#8681;</span><sub>1</sub>. ev (x<span class="hidden">&#8681;</span><sub>1</sub> + (n + (x<span class="hidden">&#8681;</span><sub>1</sub> + p)))&quot;</span> <span class="command">using</span> a1 <span class="command">by</span> <span class="delimiter">(</span>metis <span class="delimiter">(</span>no_types<span class="delimiter">)</span> ev_ev_ev helper_g_times2<span class="delimiter">)</span>
+  <span class="command">thus</span> <span class="string">&quot;ev (m + p)&quot;</span> <span class="command">using</span> a2 a3 <span class="command">by</span> <span class="delimiter">(</span>metis ev.ev_SS ev_ev_ev helper_g_times2<span class="delimiter">)</span>
+<span class="command">qed</span>
+
+<span class="command">subsection</span> <span class="verbatim">{* Additional Exercises *}</span>
+
+<span class="comment">(* Exercise: 4 stars (palindromes) *)</span>
+<span class="command">inductive_set</span> pal <span class="delimiter">::</span> <span class="string">&quot;(&#39;a list) set&quot;</span> <span class="keyword2">where</span>
+  pal_nil<span class="delimiter">:</span> <span class="string">&quot;[] &isin; pal&quot;</span>
+  <span class="delimiter">|</span> pal_singleton<span class="delimiter">:</span> <span class="string">&quot;[x] &isin; pal&quot;</span>
+  <span class="delimiter">|</span> pal_cons<span class="delimiter">:</span> <span class="string">&quot;l &isin; pal ==&gt; x # (l @ [x]) &isin; pal&quot;</span>
+
+<span class="command">theorem</span> pal_app<span class="delimiter">:</span> <span class="string">&quot;(l @ rev l) &isin; pal&quot;</span>
+<span class="command">proof</span> <span class="delimiter">(</span>induct_tac l<span class="delimiter">,</span> auto<span class="delimiter">,</span> rule pal_nil<span class="delimiter">)</span>
+  <span class="command">fix</span> a <span class="keyword2">and</span> list <span class="delimiter">::</span> <span class="string">&quot;&#39;a list&quot;</span>
+  <span class="command">assume</span> <span class="string">&quot;list @ rev list &isin; pal&quot;</span>
+  <span class="command">thus</span> <span class="string">&quot;a # list @ rev list @ [a] &isin; pal&quot;</span>
+    <span class="command">using</span> pal_cons <span class="delimiter">[</span>of <span class="string">&quot;list @ rev list&quot;</span> a<span class="delimiter">]</span> <span class="command">by</span> auto
+<span class="command">qed</span>
+
+<span class="command">theorem</span> pal_palindrome<span class="delimiter">:</span> <span class="string">&quot;l &isin; pal ==&gt; l = rev l&quot;</span>
+<span class="command">apply</span> <span class="delimiter">(</span>erule pal.cases<span class="delimiter">)</span>
+<span class="command">apply</span> <span class="delimiter">(</span>simp<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+<span class="command">proof</span> simp
+  <span class="command">fix</span> l <span class="delimiter">::</span> <span class="string">&quot;&#39;a list&quot;</span> <span class="keyword2">and</span> la x <span class="command">assume</span> <span class="string">&quot;l = x # la @ [x]&quot;</span> <span class="string">&quot;la &isin; pal&quot;</span>
+  <span class="command">show</span> <span class="string">&quot;la = rev la&quot;</span>
+    <span class="command">by</span> <span class="delimiter">(</span>rule pal.inducts <span class="delimiter">[</span>OF <span class="altstring">`la &isin; pal`</span><span class="delimiter">]</span><span class="delimiter">,</span> auto<span class="delimiter">)</span>
+<span class="command">qed</span>
+
+<span class="comment">(* Exercise: 5 stars, optional (palindrome_converse) *)</span>
+<span class="command">lemma</span> nat_inducts_all<span class="delimiter">:</span>
+  <span class="string">&quot;!!P n. P 0 ==&gt; (!!n :: nat. (!!m :: nat. m &le; n ==&gt; P m) ==&gt; P (Suc n)) ==&gt; P n&quot;</span>
+<span class="command">proof</span>-
+  <span class="command">fix</span> P <span class="keyword2">and</span> n <span class="delimiter">::</span> nat
+  <span class="command">assume</span> a<span class="delimiter">:</span> <span class="string">&quot;P 0&quot;</span> <span class="string">&quot;!!n :: nat. (!!m :: nat. m &le; n ==&gt; P m) ==&gt; P (Suc n)&quot;</span>
+  <span class="command">show</span> <span class="string">&quot;P n&quot;</span>
+    <span class="command">proof</span> <span class="delimiter">(</span>rule nat_less_induct<span class="delimiter">)</span>
+      <span class="command">fix</span> na
+      <span class="command">assume</span> a2<span class="delimiter">:</span> <span class="string">&quot;&forall;m&lt;na. P m&quot;</span>
+      <span class="command">show</span> <span class="string">&quot;P na&quot;</span>
+        <span class="command">apply</span> <span class="delimiter">(</span>cases na<span class="delimiter">,</span> simp<span class="delimiter">,</span> rule a<span class="delimiter">(</span>1<span class="delimiter">)</span><span class="delimiter">,</span> simp<span class="delimiter">,</span> rule a<span class="delimiter">(</span>2<span class="delimiter">)</span><span class="delimiter">)</span>
+        <span class="command">using</span> a2 <span class="command">by</span> simp
+    <span class="command">qed</span>
+<span class="command">qed</span>
+
+<span class="command">lemma</span> induct_by_length<span class="delimiter">:</span>
+  <span class="keyword2">fixes</span> l <span class="delimiter">::</span> <span class="string">&quot;&#39;a list&quot;</span>
+  <span class="keyword2">assumes</span> P_0<span class="delimiter">:</span> <span class="string">&quot;P []&quot;</span>
+  <span class="keyword2">and</span> P_step<span class="delimiter">:</span> <span class="string">&quot;!!l n. length l = Suc n ==&gt; (!!la. length la &le; n ==&gt; P la) ==&gt; P l&quot;</span>
+  <span class="keyword2">shows</span> <span class="string">&quot;P l&quot;</span>
+<span class="command">using</span> nat_inducts_all <span class="delimiter">[</span>of <span class="string">&quot;&lambda;k. &forall;l. length l = k --&gt; P l&quot;</span><span class="delimiter">]</span> <span class="command">apply</span> rule
+<span class="command">proof</span> <span class="delimiter">(</span>simp<span class="delimiter">,</span> rule P_0<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+  <span class="command">fix</span> n <span class="keyword2">and</span> x <span class="delimiter">::</span> <span class="string">&quot;&#39;a list&quot;</span>
+  <span class="command">assume</span> h<span class="delimiter">:</span> <span class="string">&quot;!!m. m &le; n ==&gt; &forall;x. length x = m --&gt; P x&quot;</span> <span class="string">&quot;length x = Suc n&quot;</span>
+  <span class="command">hence</span> <span class="string">&quot;!!la. length la &le; n ==&gt; P la&quot;</span> <span class="command">by</span> simp
+  <span class="command">thus</span> <span class="string">&quot;P x&quot;</span> <span class="command">using</span> P_step <span class="delimiter">[</span>OF h<span class="delimiter">(</span>2<span class="delimiter">)</span><span class="delimiter">]</span> <span class="command">by</span> simp
+<span class="command">qed</span>
+
+<span class="command">theorem</span> palindrome_converse<span class="delimiter">:</span> <span class="string">&quot;l = rev l ==&gt; l &isin; pal&quot;</span>
+<span class="command">using</span> induct_by_length <span class="delimiter">[</span>of <span class="string">&quot;&lambda;l. l = rev l --&gt; l &isin; pal&quot;</span><span class="delimiter">]</span> <span class="command">apply</span> rule
+<span class="command">proof</span> <span class="delimiter">(</span>auto<span class="delimiter">,</span> rule<span class="delimiter">)</span>
+  <span class="command">fix</span> la <span class="delimiter">::</span> <span class="string">&quot;&#39;a list&quot;</span> <span class="keyword2">and</span> n
+  <span class="command">assume</span> <span class="string">&quot;l = rev l&quot;</span>
+  <span class="keyword2">and</span> a<span class="delimiter">:</span> <span class="string">&quot;length la = Suc n&quot;</span> <span class="string">&quot;!!la :: &#39;a list. length la &le; n ==&gt; la = rev la --&gt; la &isin; pal&quot;</span> <span class="string">&quot;la = rev la&quot;</span>
+  <span class="command">from</span> a<span class="delimiter">(</span>1<span class="delimiter">)</span> <span class="command">obtain</span> x xs <span class="keyword2">where</span> xxs<span class="delimiter">:</span> <span class="string">&quot;la = x # xs&quot;</span> <span class="command">using</span> neq_Nil_conv <span class="delimiter">[</span>of la<span class="delimiter">]</span> <span class="command">by</span> auto
+  <span class="command">from</span> a<span class="delimiter">(</span>3<span class="delimiter">)</span> <span class="command">have</span> 1<span class="delimiter">:</span> <span class="string">&quot;last la = x&quot;</span> <span class="command">using</span> xxs <span class="command">by</span> simp
+
+  <span class="command">have</span> 2<span class="delimiter">:</span> <span class="string">&quot;(la = [x]) &or; (&exist;ys. la = x # ys @ [x])&quot;</span>
+    <span class="command">using</span> xxs 1 <span class="command">by</span> <span class="delimiter">(</span>metis append_Cons append_butlast_last_id butlast.simps<span class="delimiter">(</span>2<span class="delimiter">)</span> list.distinct<span class="delimiter">(</span>1<span class="delimiter">)</span><span class="delimiter">)</span>
+
+  <span class="command">have</span> <span class="string">&quot;la = [x] ==&gt; la &isin; pal&quot;</span>
+    <span class="command">by</span> <span class="delimiter">(</span>simp<span class="delimiter">,</span> rule<span class="delimiter">)</span>
+  <span class="command">moreover</span> <span class="command">have</span> <span class="string">&quot;&exist;ys. la = x # ys @ [x] ==&gt; la &isin; pal&quot;</span>
+    <span class="command">proof</span>-
+      <span class="command">assume</span> <span class="string">&quot;&exist;ys. la = x # ys @ [x]&quot;</span>
+      <span class="command">then</span> <span class="command">obtain</span> ys <span class="keyword2">where</span> ys<span class="delimiter">:</span> <span class="string">&quot;la = x # ys @ [x]&quot;</span> <span class="command">by</span> auto
+      <span class="command">have</span> <span class="string">&quot;rev ys = ys&quot;</span> <span class="command">using</span> a<span class="delimiter">(</span>3<span class="delimiter">)</span> <span class="command">by</span> <span class="delimiter">(</span>simp add<span class="delimiter">:</span> ys<span class="delimiter">)</span>
+      <span class="command">have</span> <span class="string">&quot;length ys &le; n&quot;</span>
+        <span class="command">using</span> a<span class="delimiter">(</span>1<span class="delimiter">)</span> <span class="command">by</span> <span class="delimiter">(</span>simp add<span class="delimiter">:</span> ys<span class="delimiter">)</span>
+      <span class="command">thus</span> <span class="string">&quot;la &isin; pal&quot;</span>
+        <span class="command">using</span> a<span class="delimiter">(</span>2<span class="delimiter">)</span> <span class="delimiter">[</span>OF <span class="altstring">`length ys &le; n`</span><span class="delimiter">]</span>
+        <span class="command">by</span> <span class="delimiter">(</span>simp add<span class="delimiter">:</span> <span class="altstring">`rev ys = ys`</span> ys<span class="delimiter">,</span> rule_tac pal_cons<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+    <span class="command">qed</span>
+  <span class="command">ultimately</span>
+    <span class="command">show</span> <span class="string">&quot;la &isin; pal&quot;</span> <span class="command">by</span> <span class="delimiter">(</span>metis 2<span class="delimiter">)</span>
+<span class="command">qed</span>
+
+<span class="command">fun</span> init <span class="keyword2">where</span>
+  <span class="string">&quot;init [] = []&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;init [x] = []&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;init (x # xs) = x # init xs&quot;</span>
+
+<span class="command">lemma</span> init_length<span class="delimiter">:</span> <span class="string">&quot;!!x. length (init (x # xs)) = length xs&quot;</span>
+<span class="command">by</span> <span class="delimiter">(</span>induct xs<span class="delimiter">,</span> simp<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+
+<span class="command">fun</span> cut1 <span class="keyword2">where</span>
+  <span class="string">&quot;cut1 [] = []&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;cut1 [x] = []&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;cut1 xs = init (tl xs)&quot;</span>
+
+<span class="command">lemma</span> cut1_length<span class="delimiter">:</span> <span class="string">&quot;length l &le; Suc n ==&gt; length (cut1 l) &le; n&quot;</span>
+<span class="command">apply</span> <span class="delimiter">(</span>rule cut1.cases <span class="delimiter">[</span>of l<span class="delimiter">]</span><span class="delimiter">,</span> simp<span class="delimiter">,</span> simp<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+<span class="command">by</span> <span class="delimiter">(</span>simp add<span class="delimiter">:</span> init_length<span class="delimiter">)</span>
+
+<span class="command">lemma</span> cut1_head_last<span class="delimiter">:</span> <span class="string">&quot;cut1 (x # l @ [x]) = l&quot;</span>
+<span class="command">proof</span>-
+  <span class="command">have</span> <span class="string">&quot;cut1 (x # l @ [x]) = init (l @ [x])&quot;</span> <span class="command">by</span> <span class="delimiter">(</span>cases l<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+  <span class="command">also</span> <span class="command">have</span> <span class="string">&quot;&hellip; = l&quot;</span>
+    <span class="command">proof</span> <span class="delimiter">(</span>induct l<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+      <span class="command">fix</span> a l
+      <span class="command">assume</span> a<span class="delimiter">:</span> <span class="string">&quot;init (l @ [x]) = l&quot;</span>
+      <span class="command">have</span> 1<span class="delimiter">:</span> <span class="string">&quot;l @ [x] = hd (l @ [x]) # tl (l @ [x])&quot;</span> <span class="command">by</span> <span class="delimiter">(</span>cases l<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+      <span class="command">hence</span> <span class="string">&quot;init (a # l @ [x]) = a # init (l @ [x])&quot;</span>
+        <span class="command">using</span> init.simps<span class="delimiter">(</span>3<span class="delimiter">)</span> <span class="delimiter">[</span>of a <span class="string">&quot;hd (l @ [x])&quot;</span> <span class="string">&quot;tl (l @ [x])&quot;</span><span class="delimiter">]</span> <span class="command">by</span> simp
+      <span class="command">thus</span> <span class="string">&quot;init (a # l @ [x]) = a # l&quot;</span>
+        <span class="command">by</span> <span class="delimiter">(</span>simp add<span class="delimiter">:</span> a<span class="delimiter">)</span>
+    <span class="command">qed</span>
+  <span class="command">finally</span> <span class="command">show</span> <span class="var">?thesis</span> <span class="command">by</span> simp
+<span class="command">qed</span>
+
+<span class="command">lemma</span> rev_cut1&#39;<span class="delimiter">:</span> <span class="string">&quot;l &isin; pal ==&gt; cut1 l = rev (cut1 l)&quot;</span>
+<span class="command">using</span> induct_by_length <span class="delimiter">[</span>of <span class="string">&quot;&lambda;l. l &isin; pal --&gt; cut1 l = rev (cut1 l)&quot;</span><span class="delimiter">]</span> <span class="command">apply</span> rule
+<span class="command">proof</span> auto
+  <span class="command">fix</span> la <span class="delimiter">::</span> <span class="string">&quot;&#39;a list&quot;</span> <span class="keyword2">and</span> n
+  <span class="command">assume</span> <span class="string">&quot;l &isin; pal&quot;</span>
+  <span class="keyword2">and</span> a<span class="delimiter">:</span> <span class="string">&quot;length la = Suc n&quot;</span> <span class="string">&quot;(!!la :: &#39;a list. length la &le; n ==&gt; la &isin; pal --&gt; cut1 la = rev (cut1 la))&quot;</span> <span class="string">&quot;la &isin; pal&quot;</span>
+  <span class="command">have</span> 1<span class="delimiter">:</span> <span class="string">&quot;(&exist;x. la = [x]) &or; (&exist;x xs. la = x # xs @ [x])&quot;</span>
+    <span class="command">apply</span> <span class="delimiter">(</span>rule pal.cases <span class="delimiter">[</span>OF a<span class="delimiter">(</span>3<span class="delimiter">)</span><span class="delimiter">]</span><span class="delimiter">)</span>
+    <span class="command">using</span> a<span class="delimiter">(</span>1<span class="delimiter">)</span> <span class="command">by</span> auto
+
+  <span class="command">have</span> <span class="string">&quot;(&exist;x. la = [x]) ==&gt; cut1 la = rev (cut1 la)&quot;</span> <span class="command">by</span> auto
+  <span class="command">moreover</span> <span class="command">have</span> <span class="string">&quot;(&exist;x xs. la = x # xs @ [x]) ==&gt; cut1 la = rev (cut1 la)&quot;</span>
+    <span class="command">proof</span>-
+      <span class="command">assume</span> <span class="string">&quot;&exist;x xs. la = x # xs @ [x]&quot;</span>
+      <span class="command">then</span> <span class="command">obtain</span> x xs <span class="keyword2">where</span> xxs<span class="delimiter">:</span> <span class="string">&quot;la = x # xs @ [x]&quot;</span> <span class="command">by</span> auto
+      <span class="command">have</span> 1<span class="delimiter">:</span> <span class="string">&quot;xs &isin; pal&quot;</span>
+        <span class="command">apply</span> <span class="delimiter">(</span>rule pal.cases <span class="delimiter">[</span>OF a<span class="delimiter">(</span>3<span class="delimiter">)</span><span class="delimiter">]</span><span class="delimiter">)</span>
+        <span class="command">using</span> a<span class="delimiter">(</span>1<span class="delimiter">)</span> xxs <span class="command">by</span> auto
+      <span class="command">show</span> <span class="var">?thesis</span>
+        <span class="command">by</span> <span class="delimiter">(</span>simp add<span class="delimiter">:</span> xxs cut1_head_last<span class="delimiter">,</span> rule pal_palindrome<span class="delimiter">,</span> rule 1<span class="delimiter">)</span>
+    <span class="command">qed</span>
+  <span class="command">ultimately</span>
+    <span class="command">show</span> <span class="string">&quot;cut1 la = rev (cut1 la)&quot;</span> <span class="command">using</span> 1 <span class="command">by</span> auto
+<span class="command">qed</span>
+
+<span class="command">lemma</span> rev_cut1<span class="delimiter">:</span> <span class="string">&quot;l = rev l ==&gt; cut1 l = rev (cut1 l)&quot;</span>
+<span class="command">by</span> <span class="delimiter">(</span>rule rev_cut1&#39;<span class="delimiter">,</span> simp add<span class="delimiter">:</span> palindrome_converse<span class="delimiter">)</span>
+
+<span class="command">lemma</span> cut_append<span class="delimiter">:</span> <span class="string">&quot;!!x l2. [| l = x # l2; l2 &ne; [] |] ==&gt; hd l # (cut1 l) @ [last l] = l&quot;</span>
+<span class="command">apply</span> <span class="delimiter">(</span>induct l<span class="delimiter">,</span> auto<span class="delimiter">)</span> <span class="command">by</span> <span class="delimiter">(</span>fastforce simp add<span class="delimiter">:</span> neq_Nil_conv<span class="delimiter">)</span>
+
+<span class="command">lemma</span> rev_pal_length<span class="delimiter">:</span> <span class="string">&quot;!!l. [| length l &le; n; l = rev l |] ==&gt; l &isin; pal&quot;</span>
+<span class="command">proof</span> <span class="delimiter">(</span>induct n<span class="delimiter">,</span> simp<span class="delimiter">,</span> rule pal_nil<span class="delimiter">)</span>
+  <span class="command">fix</span> n <span class="keyword2">and</span> l <span class="delimiter">::</span> <span class="string">&quot;&#39;a list&quot;</span>
+  <span class="command">assume</span> hyp<span class="delimiter">:</span> <span class="string">&quot;(!!(l :: &#39;a list). length l &le; n ==&gt; l = rev l ==&gt; l &isin; pal)&quot;</span> <span class="keyword2">and</span> <span class="string">&quot;length l &le; Suc n&quot;</span> <span class="string">&quot;l = rev l&quot;</span>
+  <span class="command">have</span> <span class="string">&quot;l = [] ==&gt; l &isin; pal&quot;</span> <span class="command">by</span> <span class="delimiter">(</span>simp<span class="delimiter">,</span> rule pal_nil<span class="delimiter">)</span>
+  <span class="command">moreover</span> <span class="command">have</span> <span class="string">&quot;!!x. l = [x] ==&gt; l &isin; pal&quot;</span> <span class="command">by</span> <span class="delimiter">(</span>simp<span class="delimiter">,</span> rule pal_singleton<span class="delimiter">)</span>
+  <span class="command">moreover</span> <span class="command">have</span> <span class="string">&quot;!!x l2. [| l = x # l2; l2 &ne; [] |] ==&gt; l &isin; pal&quot;</span>
+    <span class="command">proof</span> -
+      <span class="command">fix</span> x l2
+      <span class="command">assume</span> <span class="string">&quot;l = x # l2&quot;</span> <span class="string">&quot;l2 &ne; []&quot;</span>
+      <span class="command">have</span> <span class="string">&quot;length (cut1 l) &le; n&quot;</span> <span class="command">using</span> cut1_length <span class="delimiter">[</span>OF <span class="altstring">`length l &le; Suc n`</span><span class="delimiter">]</span> <span class="command">by</span> simp
+      <span class="command">moreover</span> <span class="command">have</span> <span class="string">&quot;cut1 l = rev (cut1 l)&quot;</span> <span class="command">using</span> rev_cut1 <span class="delimiter">[</span>OF <span class="altstring">`l = rev l`</span><span class="delimiter">]</span> <span class="command">by</span> simp
+      <span class="command">ultimately</span>
+        <span class="command">have</span> <span class="string">&quot;cut1 l &isin; pal&quot;</span> <span class="command">using</span> hyp <span class="delimiter">[</span>of <span class="string">&quot;cut1 l&quot;</span><span class="delimiter">]</span> <span class="command">by</span> simp
+        <span class="command">moreover</span> <span class="command">have</span> <span class="string">&quot;hd l = last l&quot;</span>
+          <span class="command">using</span> <span class="altstring">`l = rev l`</span> <span class="command">apply</span> <span class="delimiter">(</span>subst last_rev <span class="delimiter">[</span>symmetric<span class="delimiter">]</span><span class="delimiter">)</span> <span class="command">by</span> <span class="delimiter">(</span>auto simp add<span class="delimiter">:</span> <span class="altstring">`l = x # l2`</span><span class="delimiter">)</span>
+        <span class="command">ultimately</span>
+          <span class="command">have</span> <span class="string">&quot;hd l # cut1 l @ [last l] &isin; pal&quot;</span> <span class="command">using</span> pal_cons <span class="command">by</span> simp
+          <span class="command">moreover</span> <span class="command">have</span> <span class="string">&quot;l = hd l # cut1 l @ [last l]&quot;</span> <span class="command">using</span> cut_append <span class="delimiter">[</span>OF <span class="altstring">`l = x # l2`</span> <span class="altstring">`l2 &ne; []`</span><span class="delimiter">]</span> <span class="command">by</span> simp
+          <span class="command">ultimately</span> <span class="command">show</span> <span class="string">&quot;l &isin; pal&quot;</span> <span class="command">by</span> simp
+    <span class="command">qed</span>
+  <span class="command">ultimately</span> <span class="command">show</span> <span class="string">&quot;l &isin; pal&quot;</span> <span class="command">by</span> <span class="delimiter">(</span>metis list.exhaust<span class="delimiter">)</span>
+<span class="command">qed</span>
+
+<span class="command">theorem</span> pal_converse<span class="delimiter">:</span> <span class="string">&quot;l = rev l ==&gt; l &isin; pal&quot;</span>
+<span class="command">using</span> rev_pal_length <span class="delimiter">[</span>of l <span class="string">&quot;length l&quot;</span><span class="delimiter">]</span> <span class="command">by</span> simp
+
+<span class="comment">(* Exercise: 4 stars, advanced (subsequence) *)</span>
+<span class="command">inductive</span> subseq <span class="delimiter">::</span> <span class="string">&quot;&#39;a list =&gt; &#39;a list =&gt; bool&quot;</span> <span class="keyword2">where</span>
+  subseq_nil<span class="delimiter">:</span> <span class="string">&quot;subseq [] []&quot;</span>
+  <span class="delimiter">|</span> subseq_cons<span class="delimiter">:</span> <span class="string">&quot;subseq xs ys ==&gt; subseq xs (y # ys)&quot;</span>
+  <span class="delimiter">|</span> subseq_cons_both<span class="delimiter">:</span> <span class="string">&quot;subseq xs ys ==&gt; subseq (x # xs) (x # ys)&quot;</span>
+
+<span class="command">abbreviation</span> is_subseq_of <span class="delimiter">(</span><span class="string">&quot;_ {subseq of} _&quot;</span><span class="delimiter">)</span> <span class="keyword2">where</span>
+  <span class="string">&quot;is_subseq_of xs ys &equiv; subseq xs ys&quot;</span>
+
+<span class="command">theorem</span> subseq_reflexive<span class="delimiter">:</span> <span class="string">&quot;subseq xs xs&quot;</span>
+<span class="command">apply</span> <span class="delimiter">(</span>induct xs<span class="delimiter">)</span> <span class="command">by</span> <span class="delimiter">(</span>rule subseq_nil<span class="delimiter">,</span> rule subseq_cons_both<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+
+<span class="command">lemma</span> subseq_empty<span class="delimiter">:</span> <span class="string">&quot;[] {subseq of} xs&quot;</span>
+<span class="command">apply</span> <span class="delimiter">(</span>induct xs<span class="delimiter">)</span> <span class="command">by</span> <span class="delimiter">(</span>rule subseq_nil<span class="delimiter">,</span> rule subseq_cons<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+
+<span class="command">lemma</span> subseq_app&#39;<span class="delimiter">:</span> <span class="string">&quot;ys {subseq of} xs ==&gt; ys {subseq of} (xs&#39; @ xs)&quot;</span>
+<span class="command">apply</span> <span class="delimiter">(</span>induct xs&#39;<span class="delimiter">)</span> <span class="command">by</span> <span class="delimiter">(</span>simp<span class="delimiter">,</span> simp<span class="delimiter">,</span> rule subseq_cons<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+
+<span class="command">theorem</span> subseq_app<span class="delimiter">:</span> <span class="string">&quot;[| l1 {subseq of} l2; l1 {subseq of} l3 |] ==&gt; l1 {subseq of} (l2 @ l3)&quot;</span>
+<span class="command">by</span> <span class="delimiter">(</span>auto simp add<span class="delimiter">:</span> subseq_app&#39;<span class="delimiter">)</span>
+
+<span class="command">lemma</span> subseq_empty_of<span class="delimiter">:</span> <span class="string">&quot;xs {subseq of} [] ==&gt; xs = []&quot;</span>
+<span class="command">by</span> <span class="delimiter">(</span>erule subseq.cases<span class="delimiter">,</span> simp<span class="delimiter">+</span><span class="delimiter">)</span>
+
+<span class="comment">(*
+lemma subseq_split_l:
+  &quot;l1 {subseq of} (l2 @ l3) ==&gt; &exist;l4. &exist;l5. (l4 {subseq of} l2) &amp; (l5 {subseq of} l3) &amp; (l1 = l4 @ l5)&quot;
+sorry
+
+theorem subseq_trans: &quot;!!l1 l3. [| l1 {subseq of} l2; l2 {subseq of} l3 |] ==&gt; l1 {subseq of} l3&quot;
+apply (induct l2)
+  using subseq_empty_of apply fastforce
+proof -
+  fix a l2 l1 l3
+  assume hyp: &quot;!!l1 l3 :: &#39;a list. l1 {subseq of} l2 ==&gt; l2 {subseq of} l3 ==&gt; l1 {subseq of} l3&quot;
+  and 1: &quot;l1 {subseq of} (a # l2)&quot; &quot;(a # l2) {subseq of} l3&quot;
+  obtain l4 l5 where
+    l45: &quot;l4 {subseq of} [a]&quot; &quot;l5 {subseq of} l2&quot; &quot;l1 = l4 @ l5&quot;
+    using subseq_split_l [of l1 &quot;[a]&quot; l2] by (fastforce simp add: 1(1))
+  have &quot;l5 {subseq of} l3&quot;
+    using hyp [OF l45(2)]
+
+  show &quot;l1 {subseq of} l3&quot;
+*)</span>
+
+<span class="comment">(* Exercise: 2 stars, optional (R_provability) *)</span>
+<span class="command">inductive</span> R <span class="keyword2">where</span>
+  c1<span class="delimiter">:</span> <span class="string">&quot;R 0 []&quot;</span>
+  <span class="delimiter">|</span> c2<span class="delimiter">:</span> <span class="string">&quot;R n l ==&gt; R (Suc n) (n # l)&quot;</span>
+  <span class="delimiter">|</span> c3<span class="delimiter">:</span> <span class="string">&quot;R (Suc n) l ==&gt; R n l&quot;</span>
+
+<span class="command">lemma</span> R_2<span class="delimiter">:</span> <span class="string">&quot;R 2 [1,0]&quot;</span>
+<span class="command">by</span> <span class="delimiter">(</span>metis <span class="delimiter">(</span>no_types<span class="delimiter">)</span> One_nat_def R.simps Suc_1<span class="delimiter">)</span>
+
+<span class="command">lemma</span> R_1<span class="delimiter">:</span> <span class="string">&quot;R 1 [1,2,1,0]&quot;</span>
+<span class="command">by</span> <span class="delimiter">(</span>metis R_2 Suc_1 c2 c3<span class="delimiter">)</span>
+
+<span class="comment">(*
+&quot;R 6 [3,2,1,0] ==&gt; False&quot;
+unprovable
+*)</span>
+
+<span class="command">subsection</span> <span class="verbatim">{* Relations *}</span>
+
+<span class="command">inductive</span> le <span class="delimiter">::</span> <span class="string">&quot;nat =&gt; nat =&gt; bool&quot;</span> <span class="keyword2">where</span>
+  le_n<span class="delimiter">:</span> <span class="string">&quot;le n n&quot;</span>
+  <span class="delimiter">|</span> le_S<span class="delimiter">:</span> <span class="string">&quot;le n m ==&gt; le n (Suc m)&quot;</span>
+
+<span class="command">theorem</span> test_le1<span class="delimiter">:</span> <span class="string">&quot;le 3 3&quot;</span> <span class="command">by</span> <span class="delimiter">(</span>rule le_n<span class="delimiter">)</span>
+<span class="command">theorem</span> test_le2<span class="delimiter">:</span> <span class="string">&quot;le 3 6&quot;</span>
+<span class="command">proof</span> -
+  <span class="command">have</span> <span class="string">&quot;le 3 (Suc (Suc (Suc 3)))&quot;</span> <span class="command">by</span> <span class="delimiter">(</span>rule le_S<span class="delimiter">,</span> rule le_S<span class="delimiter">,</span> rule le_S<span class="delimiter">,</span> rule le_n<span class="delimiter">)</span>
+  <span class="command">thus</span> <span class="var">?thesis</span> <span class="command">by</span> simp
+<span class="command">qed</span>
+
+<span class="command">theorem</span> test_le3<span class="delimiter">:</span> <span class="string">&quot;le 2 1 ==&gt; 2 + 2 = 5&quot;</span>
+<span class="command">proof</span> -
+  <span class="command">assume</span> <span class="string">&quot;le 2 1&quot;</span> <span class="command">hence</span> <span class="string">&quot;le (Suc 1) 1&quot;</span> <span class="command">by</span> <span class="delimiter">(</span>simp add<span class="delimiter">:</span> numeral_eq_Suc<span class="delimiter">)</span>
+  <span class="command">hence</span> False <span class="command">by</span> <span class="delimiter">(</span>metis One_nat_def Suc_eq_numeral le.cases numeral_One old.nat.distinct<span class="delimiter">(</span>2<span class="delimiter">)</span><span class="delimiter">)</span>
+  <span class="command">thus</span> <span class="string">&quot;2 + 2 = 5&quot;</span> <span class="command">by</span> meson
+<span class="command">qed</span>
+
+<span class="command">fun</span> lt <span class="keyword2">where</span>
+  <span class="string">&quot;lt n m = le (Suc n) m&quot;</span>
+
+<span class="command">inductive</span> square_of <span class="keyword2">where</span>
+  sq<span class="delimiter">:</span> <span class="string">&quot;square_of n (n * n)&quot;</span>
+<span class="command">inductive</span> next_nat <span class="keyword2">where</span>
+  nn<span class="delimiter">:</span> <span class="string">&quot;next_nat n (Suc n)&quot;</span>
+<span class="command">inductive</span> next_even <span class="keyword2">where</span>
+  ne_1<span class="delimiter">:</span> <span class="string">&quot;ev (Suc n) ==&gt; next_even n (Suc n)&quot;</span>
+  <span class="delimiter">|</span> ne_2<span class="delimiter">:</span> <span class="string">&quot;ev (Suc (Suc n)) ==&gt; next_even n (Suc (Suc n))&quot;</span>
+
+<span class="comment">(* Exercise: 2 stars (total_relation) *)</span>
+<span class="command">inductive</span> total_relation <span class="keyword2">where</span>
+  lt<span class="delimiter">:</span> <span class="string">&quot;n &lt; m ==&gt; total_relation n m&quot;</span>
+  <span class="delimiter">|</span> gte<span class="delimiter">:</span> <span class="string">&quot;n &ge; m ==&gt; total_relation n m&quot;</span>
+
+<span class="comment">(* Exercise: 2 stars (empty_relation) *)</span>
+<span class="command">inductive</span> empty_relation <span class="keyword2">where</span>
+  empty_r<span class="delimiter">:</span> <span class="string">&quot;[| n &lt; m; m &gt; n |] ==&gt; empty_relation n m&quot;</span>
+
+<span class="comment">(* Exercise: 2 stars, optional (le_exercises) *)</span>
+<span class="command">lemma</span> le_Suc<span class="delimiter">:</span> <span class="string">&quot;le m n ==&gt; &exist;a :: nat. n = m + a&quot;</span>
+<span class="command">by</span> <span class="delimiter">(</span>rule le.inducts<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+
+<span class="command">lemma</span> Suc_le<span class="delimiter">:</span> <span class="string">&quot;!!n. n = m + a ==&gt; le m n&quot;</span>
+<span class="command">apply</span> <span class="delimiter">(</span>induct a<span class="delimiter">,</span> simp<span class="delimiter">,</span> rule le_n<span class="delimiter">)</span> <span class="command">by</span> <span class="delimiter">(</span>simp add<span class="delimiter">:</span> le_S<span class="delimiter">)</span>
+
+<span class="command">lemma</span> le_trans<span class="delimiter">:</span> <span class="string">&quot;!!m n o&#39;. le m n ==&gt; le n o&#39; ==&gt; le m o&#39;&quot;</span>
+<span class="command">proof</span> -
+  <span class="command">fix</span> m n o&#39; <span class="command">assume</span> <span class="string">&quot;le m n&quot;</span> <span class="string">&quot;le n o&#39;&quot;</span>
+  <span class="command">then</span> <span class="command">obtain</span> a b <span class="keyword2">where</span> <span class="string">&quot;n = m + a&quot;</span> <span class="string">&quot;o&#39; = n + b&quot;</span> <span class="command">by</span> <span class="delimiter">(</span>metis le_Suc<span class="delimiter">)</span>
+  <span class="command">thus</span> <span class="string">&quot;le m o&#39;&quot;</span> <span class="command">using</span> Suc_le <span class="delimiter">[</span>of o&#39; m <span class="string">&quot;a + b&quot;</span><span class="delimiter">]</span> <span class="command">by</span> simp
+<span class="command">qed</span>
+
+<span class="command">theorem</span> le_0_n<span class="delimiter">:</span> <span class="string">&quot;le 0 n&quot;</span>
+<span class="command">by</span> <span class="delimiter">(</span>induct n<span class="delimiter">,</span> rule le_n<span class="delimiter">,</span> rule le_S<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+
+<span class="command">theorem</span> n_le_m_Sn_le_Sm<span class="delimiter">:</span> <span class="string">&quot;le n m ==&gt; le (Suc n) (Suc m)&quot;</span>
+<span class="command">using</span> Suc_le le_Suc <span class="command">by</span> <span class="delimiter">(</span>metis add_Suc<span class="delimiter">)</span>
+
+<span class="command">theorem</span> Sn_le_Sm_n_le_m<span class="delimiter">:</span> <span class="string">&quot;le (Suc n) (Suc m) ==&gt; le n m&quot;</span>
+<span class="command">using</span> Suc_le le_Suc <span class="command">by</span> <span class="delimiter">(</span>metis Prop.le_trans Prop.pred.simps<span class="delimiter">(</span>2<span class="delimiter">)</span> le.cases le_S le_n<span class="delimiter">)</span>
+
+<span class="command">theorem</span> le_plus_l<span class="delimiter">:</span> <span class="string">&quot;le a (a+b)&quot;</span>
+<span class="command">by</span> <span class="delimiter">(</span>induct b<span class="delimiter">,</span> auto<span class="delimiter">,</span> rule<span class="delimiter">,</span> rule<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+
+<span class="command">theorem</span> plus_lt<span class="delimiter">:</span> <span class="string">&quot;le (n1 + n2) m ==&gt; le n1 m &and; le n2 m&quot;</span>
+<span class="command">using</span> Suc_le le_Suc <span class="command">by</span> <span class="delimiter">(</span>metis Prop.le_trans add.commute<span class="delimiter">)</span>
+
+<span class="command">theorem</span> lt_S<span class="delimiter">:</span> <span class="string">&quot;le n m ==&gt; le n (Suc m)&quot;</span> <span class="command">by</span> <span class="delimiter">(</span>rule<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+<span class="command">theorem</span> ble_nat_true<span class="delimiter">:</span> <span class="string">&quot;n &le; m ==&gt; le n m&quot;</span> <span class="command">using</span> Suc_le <span class="delimiter">[</span>of m n <span class="string">&quot;m - n&quot;</span><span class="delimiter">]</span> <span class="command">by</span> simp
+<span class="command">theorem</span> le_ble_nat<span class="delimiter">:</span> <span class="string">&quot;le n m ==&gt; n &le; m&quot;</span> <span class="command">using</span> le_Suc <span class="delimiter">[</span>of n m<span class="delimiter">]</span> <span class="command">by</span> fastforce
+<span class="command">theorem</span> ble_nat_true_trans<span class="delimiter">:</span> <span class="string">&quot;n = m ==&gt; m = o&#39; ==&gt; n = o&#39;&quot;</span> <span class="command">by</span> simp
+
+<span class="comment">(* Exercise: 2 stars, optional (ble_nat_false) *)</span>
+<span class="command">theorem</span> ble_nat_false<span class="delimiter">:</span> <span class="string">&quot;&not; (n &le; m) ==&gt; &not; (le n m)&quot;</span> <span class="command">using</span> le_ble_nat <span class="command">by</span> auto
+
+<span class="comment">(* Exercise: 3 stars (R_provability2) *)</span>
+<span class="command">inductive</span> R&#39; <span class="keyword2">where</span>
+  c1<span class="delimiter">:</span> <span class="string">&quot;R&#39; 0 0 0&quot;</span>
+  <span class="delimiter">|</span> c2<span class="delimiter">:</span> <span class="string">&quot;R&#39; l m n ==&gt; R&#39; (Suc l) m (Suc n)&quot;</span>
+  <span class="delimiter">|</span> c3<span class="delimiter">:</span> <span class="string">&quot;R&#39; l m n ==&gt; R&#39; l (Suc m) (Suc n)&quot;</span>
+  <span class="delimiter">|</span> c4<span class="delimiter">:</span> <span class="string">&quot;R&#39; (Suc l) (Suc m) (Suc (Suc n)) ==&gt; R&#39; l m n&quot;</span>
+  <span class="delimiter">|</span> c5<span class="delimiter">:</span> <span class="string">&quot;R&#39; l m n ==&gt; R&#39; m l n&quot;</span>
+
+<span class="command">lemma</span> R&#39;_112<span class="delimiter">:</span> <span class="string">&quot;R&#39; 1 1 2&quot;</span>
+<span class="command">by</span> <span class="delimiter">(</span>metis One_nat_def R&#39;.c1 R&#39;.c2 R&#39;.c3 Suc_1<span class="delimiter">)</span>
+
+<span class="comment">(*
+&quot;R&#39; 2 2 6&quot;
+unprovable
+*)</span>
+
+<span class="comment">(* Exercise: 3 stars, optional (R_fact) *)</span>
+<span class="command">fun</span> sum_le <span class="keyword2">where</span>
+  <span class="string">&quot;sum_le l m n = ((l + m) = n)&quot;</span>
+
+<span class="command">theorem</span> R&#39;_sumle<span class="delimiter">:</span> <span class="string">&quot;R&#39; l m n ==&gt; sum_le l m n&quot;</span>
+<span class="command">by</span> <span class="delimiter">(</span>erule R&#39;.inducts<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+
+<span class="command">theorem</span> sumle_R&#39;<span class="delimiter">:</span> <span class="string">&quot;!!m n. sum_le l m n ==&gt; R&#39; l m n&quot;</span>
+<span class="command">proof</span> <span class="delimiter">(</span>induct l<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+  <span class="command">fix</span> n <span class="command">show</span> <span class="string">&quot;R&#39; 0 n n&quot;</span>
+  <span class="command">by</span> <span class="delimiter">(</span>induct n<span class="delimiter">,</span> rule c1<span class="delimiter">,</span> rule c3<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+<span class="command">next</span>
+  <span class="command">fix</span> l m n
+  <span class="command">assume</span> hyp<span class="delimiter">:</span> <span class="string">&quot;!!m n. l + m = n ==&gt; R&#39; l m n&quot;</span>
+  <span class="command">show</span> <span class="string">&quot;R&#39; (Suc l) m (Suc (l + m))&quot;</span> <span class="command">by</span> <span class="delimiter">(</span>rule c2<span class="delimiter">,</span> rule hyp<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+<span class="command">qed</span>
+
+<span class="command">subsection</span> <span class="verbatim">{* Programming with Propositions Revisited *}</span>
+
+<span class="command">end</span>
+
+</pre>
+
+</div>
+</body>
+</html>

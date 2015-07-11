@@ -1,0 +1,700 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>Theory Imp (Isabelle2014: August 2014)</title>
+<link media="all" rel="stylesheet" type="text/css" href="isabelle.css"/>
+</head>
+
+<body>
+<div class="head"><h1>Theory Imp</h1>
+
+<span class="command">theory</span> <span class="name">Imp</span><br/>
+<span class="keyword">imports</span> <a href="MoreLogic.html"><span class="name">MoreLogic</span></a><br/>
+
+</div>
+<div class="source">
+<pre><span class="command">theory</span> Imp
+<span class="keyword2">imports</span> Main Prop MoreLogic
+<span class="keyword2">begin</span>
+
+<span class="command">section</span> <span class="verbatim">{* Imp *}</span>
+<span class="command">subsubsection</span> <span class="verbatim">{* Sflib *}</span>
+
+<span class="command">subsection</span> <span class="verbatim">{* Arithmetic and Boolean Expressions *}</span>
+<span class="command">subsubsection</span> <span class="verbatim">{* Syntax *}</span>
+
+<span class="command">datatype</span> aexp <span class="delimiter">=</span> ANum nat <span class="delimiter">|</span> APlus aexp aexp <span class="delimiter">|</span> AMinus aexp aexp <span class="delimiter">|</span> AMult aexp aexp
+<span class="command">datatype</span> bexp <span class="delimiter">=</span> BTrue <span class="delimiter">|</span> BFalse <span class="delimiter">|</span> BEq aexp aexp <span class="delimiter">|</span> BLe aexp aexp <span class="delimiter">|</span> BNot bexp <span class="delimiter">|</span> BAnd bexp bexp
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Evaluation *}</span>
+
+<span class="command">fun</span> aeval <span class="delimiter">::</span> <span class="string">&quot;aexp =&gt; nat&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;aeval (ANum n) = n&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;aeval (APlus a1 a2) = aeval a1 + aeval a2&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;aeval (AMinus a1 a2) = aeval a1 - aeval a2&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;aeval (AMult a1 a2) = aeval a1 * aeval a2&quot;</span>
+
+<span class="command">lemma</span> test_aeval1<span class="delimiter">:</span> <span class="string">&quot;aeval (APlus (ANum 2) (ANum 2)) = 4&quot;</span> <span class="command">by</span> simp
+
+<span class="command">fun</span> beval <span class="delimiter">::</span> <span class="string">&quot;bexp =&gt; bool&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;beval BTrue = True&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;beval BFalse = False&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;beval (BEq a1 a2) = (aeval a1 = aeval a2)&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;beval (BLe a1 a2) = (aeval a1 &le; aeval a2)&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;beval (BNot b1) = (&not; beval b1)&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;beval (BAnd b1 b2) = (beval b1 &and; beval b2)&quot;</span>
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Optimization *}</span>
+
+<span class="command">fun</span> optimize_0plus <span class="delimiter">::</span> <span class="string">&quot;aexp =&gt; aexp&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;optimize_0plus (ANum n) = ANum n&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;optimize_0plus (APlus (ANum 0) e2) = optimize_0plus e2&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;optimize_0plus (APlus e1 e2) = APlus (optimize_0plus e1) (optimize_0plus e2)&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;optimize_0plus (AMinus e1 e2) = AMinus (optimize_0plus e1) (optimize_0plus e2)&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;optimize_0plus (AMult e1 e2) = AMult (optimize_0plus e1) (optimize_0plus e2)&quot;</span>
+
+<span class="command">lemma</span> test_optimize_0plus<span class="delimiter">:</span>
+  <span class="string">&quot;optimize_0plus (APlus (ANum 2) (APlus (ANum 0) (APlus (ANum 0) (ANum 1)))) = APlus (ANum 2) (ANum 1)&quot;</span>
+<span class="command">by</span> <span class="delimiter">(</span>subst Suc_1 <span class="delimiter">[</span>symmetric<span class="delimiter">]</span><span class="delimiter">,</span> subst optimize_0plus.simps<span class="delimiter">(</span>3<span class="delimiter">)</span><span class="delimiter">,</span> simp<span class="delimiter">)</span>
+
+<span class="command">theorem</span> optimize_0plus_sound<span class="delimiter">:</span> <span class="string">&quot;aeval (optimize_0plus a) = aeval a&quot;</span>
+<span class="command">apply</span> <span class="delimiter">(</span>rule aexp.inducts<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+<span class="command">apply</span> <span class="delimiter">(</span>case_tac aexp1<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+<span class="command">apply</span> <span class="delimiter">(</span>case_tac nat<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+<span class="command">done</span>
+
+<span class="command">subsection</span> <span class="verbatim">{* Coq Automation *}</span>
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Tacticals *}</span>
+<span class="command">subsubsection</span> <span class="verbatim">{* The repeat Tactical *}</span>
+
+<span class="command">theorem</span> ev100<span class="delimiter">:</span> <span class="string">&quot;ev (100 :: nat)&quot;</span>
+<span class="command">proof</span> -
+  <span class="command">have</span> 1<span class="delimiter">:</span> <span class="string">&quot;!!n::nat. ev (double n)&quot;</span> <span class="command">using</span> double_even <span class="command">by</span> simp
+  <span class="command">show</span> <span class="string">&quot;ev 100&quot;</span> <span class="command">using</span> 1 <span class="delimiter">[</span>of 50<span class="delimiter">]</span> <span class="command">by</span> simp
+<span class="command">qed</span>
+
+<span class="command">subsubsection</span> <span class="verbatim">{* The try Tactical *}</span>
+
+<span class="command">theorem</span> silly1<span class="delimiter">:</span> <span class="string">&quot;aeval ae = aeval ae&quot;</span> <span class="command">by</span> simp
+<span class="command">theorem</span> silly2<span class="delimiter">:</span> <span class="string">&quot;P ==&gt; P&quot;</span> <span class="command">by</span> simp
+
+<span class="command">subsubsection</span> <span class="verbatim">{* The ; Tactical (Simple Form) *}</span>
+
+<span class="command">lemma</span> foo<span class="delimiter">:</span> <span class="string">&quot;0 &le; (n :: nat)&quot;</span> <span class="command">by</span> simp
+
+<span class="command">subsubsection</span> <span class="verbatim">{* The ; Tactical (General Form) *}</span>
+<span class="command">subsubsection</span> <span class="verbatim">{* Defining New Tactic Notations *}</span>
+<span class="command">subsubsection</span> <span class="verbatim">{* Bulletproofing Case Analyses *}</span>
+
+<span class="comment">(* Exercise: 3 stars (optimize_0plus_b) *)</span>
+<span class="command">fun</span> optimize_0plus_b <span class="delimiter">::</span> <span class="string">&quot;bexp =&gt; bexp&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;optimize_0plus_b BTrue = BTrue&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;optimize_0plus_b BFalse = BFalse&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;optimize_0plus_b (BEq a1 a2) = BEq a1 a2&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;optimize_0plus_b (BLe a1 a2) = BLe a1 a2&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;optimize_0plus_b (BNot b1) = BNot b1&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;optimize_0plus_b (BAnd BTrue b2) = b2&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;optimize_0plus_b (BAnd BFalse _) = BFalse&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;optimize_0plus_b (BAnd b1 b2) = BAnd b1 b2&quot;</span>
+
+<span class="command">theorem</span> optimize_0plus_b_sound<span class="delimiter">:</span> <span class="string">&quot;beval (optimize_0plus_b b) = beval b&quot;</span>
+<span class="command">apply</span> <span class="delimiter">(</span>rule bexp.inducts<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+<span class="command">apply</span> <span class="delimiter">(</span>case_tac bexp1<span class="delimiter">,</span> auto<span class="delimiter">)</span><span class="delimiter">+</span>
+<span class="command">done</span>
+
+<span class="comment">(* Exercise: 4 stars, optional (optimizer) *)</span>
+
+<span class="command">subsubsection</span> <span class="verbatim">{* The omega Tactic *}</span>
+
+<span class="command">lemma</span> silly_presburger_example<span class="delimiter">:</span> <span class="string">&quot;(m :: nat) + n &le; n + o&#39; &and; o&#39; + 3 = p + 3 ==&gt; m &le; p&quot;</span> <span class="command">by</span> simp
+
+<span class="command">subsubsection</span> <span class="verbatim">{* A Few More Handy Tactics *}</span>
+
+<span class="command">subsection</span> <span class="verbatim">{* Evaluation as a Relation *}</span>
+
+<span class="command">inductive</span> aevalR <span class="delimiter">::</span> <span class="string">&quot;aexp =&gt; nat =&gt; bool&quot;</span> <span class="delimiter">(</span><span class="keyword2">infixl</span> <span class="string">&quot;\&lt;Down&gt;&quot;</span> 70<span class="delimiter">)</span> <span class="keyword2">where</span>
+  E_ANum<span class="delimiter">:</span> <span class="string">&quot;aevalR (ANum n) n&quot;</span>
+  <span class="delimiter">|</span> E_APlus<span class="delimiter">:</span> <span class="string">&quot;[| aevalR e1 n1; aevalR e2 n2 |] ==&gt; aevalR (APlus e1 e2) (n1 + n2)&quot;</span>
+  <span class="delimiter">|</span> E_AMinus<span class="delimiter">:</span> <span class="string">&quot;[| aevalR e1 n1; aevalR e2 n2 |] ==&gt; aevalR (AMinus e1 e2) (n1 - n2)&quot;</span>
+  <span class="delimiter">|</span> E_AMult<span class="delimiter">:</span> <span class="string">&quot;[| aevalR e1 n1; aevalR e2 n2 |] ==&gt; aevalR (AMult e1 e2) (n1 * n2)&quot;</span>
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Inference Rule Notation *}</span>
+<span class="command">subsubsection</span> <span class="verbatim">{* Equivalence of the Definitions *}</span>
+
+<span class="command">theorem</span> aeval_iff_aevalR<span class="delimiter">:</span> <span class="string">&quot;a \&lt;Down&gt; n &lt;-&gt; aeval a = n&quot;</span>
+<span class="command">apply</span> auto
+<span class="command">apply</span> <span class="delimiter">(</span>erule aevalR.inducts<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+<span class="command">apply</span> <span class="delimiter">(</span>rule aeval.induct<span class="delimiter">,</span> auto<span class="delimiter">,</span> rule<span class="delimiter">)</span>
+  <span class="command">apply</span> <span class="delimiter">(</span>rule<span class="delimiter">,</span> auto<span class="delimiter">)</span><span class="delimiter">+</span>
+<span class="command">done</span>
+
+<span class="comment">(* Exercise: 3 stars (bevalR) *)</span>
+<span class="command">inductive</span> bevalR <span class="delimiter">::</span> <span class="string">&quot;bexp =&gt; bool =&gt; bool&quot;</span> <span class="keyword2">where</span>
+  E_BTrue<span class="delimiter">:</span> <span class="string">&quot;bevalR BTrue True&quot;</span>
+  <span class="delimiter">|</span> E_BFalse<span class="delimiter">:</span> <span class="string">&quot;bevalR BFalse False&quot;</span>
+  <span class="delimiter">|</span> E_BEq<span class="delimiter">:</span> <span class="string">&quot;[| aevalR a1 m1; aevalR a2 m2 |] ==&gt; bevalR (BEq a1 a2) (m1 = m2)&quot;</span>
+  <span class="delimiter">|</span> E_BLe<span class="delimiter">:</span> <span class="string">&quot;[| aevalR a1 m1; aevalR a2 m2 |] ==&gt; bevalR (BLe a1 a2) (m1 &le; m2)&quot;</span>
+  <span class="delimiter">|</span> E_BNot<span class="delimiter">:</span> <span class="string">&quot;bevalR b1 m1 ==&gt; bevalR (BNot b1) (&not; m1)&quot;</span>
+  <span class="delimiter">|</span> E_BAnd<span class="delimiter">:</span> <span class="string">&quot;[| bevalR b1 m1; bevalR b2 m2 |] ==&gt; bevalR (BAnd b1 b2) (m1 &and; m2)&quot;</span>
+
+<span class="command">lemma</span> bevalR_beval<span class="delimiter">:</span> <span class="string">&quot;bevalR b (beval b)&quot;</span>
+<span class="command">apply</span> <span class="delimiter">(</span>induct b<span class="delimiter">)</span>
+<span class="command">apply</span> <span class="delimiter">(</span>simp<span class="delimiter">,</span> rule<span class="delimiter">)</span><span class="delimiter">+</span>
+<span class="command">apply</span> <span class="delimiter">(</span>fastforce simp add<span class="delimiter">:</span> aeval_iff_aevalR<span class="delimiter">)</span>
+<span class="command">apply</span> <span class="delimiter">(</span>fastforce simp add<span class="delimiter">:</span> aeval_iff_aevalR<span class="delimiter">)</span>
+<span class="command">apply</span> <span class="delimiter">(</span>simp<span class="delimiter">,</span> metis E_BLe aeval_iff_aevalR<span class="delimiter">)</span>
+<span class="command">apply</span> <span class="delimiter">(</span>simp<span class="delimiter">,</span> rule<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+<span class="command">apply</span> <span class="delimiter">(</span>simp<span class="delimiter">,</span> rule<span class="delimiter">,</span> simp<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+<span class="command">done</span>
+
+<span class="command">theorem</span> beval_iff_bevalR<span class="delimiter">:</span> <span class="string">&quot;bevalR b m &lt;-&gt; beval b = m&quot;</span>
+<span class="command">apply</span> rule
+<span class="command">apply</span> <span class="delimiter">(</span>erule bevalR.inducts<span class="delimiter">,</span> simp<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+  <span class="command">apply</span> <span class="delimiter">(</span>simp<span class="delimiter">,</span> fastforce simp add<span class="delimiter">:</span> aeval_iff_aevalR<span class="delimiter">)</span><span class="delimiter">+</span>
+<span class="command">proof</span> -
+  <span class="command">assume</span> 1<span class="delimiter">:</span> <span class="string">&quot;beval b = m&quot;</span>
+  <span class="command">show</span> <span class="string">&quot;bevalR b m&quot;</span>
+    <span class="command">apply</span> <span class="delimiter">(</span>subst 1 <span class="delimiter">[</span>symmetric<span class="delimiter">]</span><span class="delimiter">)</span>
+    <span class="command">by</span> <span class="delimiter">(</span>rule bevalR_beval<span class="delimiter">)</span>
+<span class="command">qed</span>
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Computational vs. Relational Definitions *}</span>
+
+<span class="command">datatype</span> aexp&#39; <span class="delimiter">=</span> ANum nat <span class="delimiter">|</span> APlus aexp&#39; aexp&#39; <span class="delimiter">|</span> AMinus aexp&#39; aexp&#39; <span class="delimiter">|</span> AMult aexp&#39; aexp&#39;
+  <span class="delimiter">|</span> ADiv aexp&#39; aexp&#39;
+
+<span class="command">inductive</span> aevalR&#39; <span class="delimiter">::</span> <span class="string">&quot;aexp&#39; =&gt; nat =&gt; bool&quot;</span> <span class="keyword2">where</span>
+  E_ANum<span class="delimiter">:</span> <span class="string">&quot;aevalR&#39; (ANum n) n&quot;</span>
+  <span class="delimiter">|</span> E_APlus<span class="delimiter">:</span> <span class="string">&quot;[| aevalR&#39; e1 n1; aevalR&#39; e2 n2 |] ==&gt; aevalR&#39; (APlus e1 e2) (n1 + n2)&quot;</span>
+  <span class="delimiter">|</span> E_AMinus<span class="delimiter">:</span> <span class="string">&quot;[| aevalR&#39; e1 n1; aevalR&#39; e2 n2 |] ==&gt; aevalR&#39; (AMinus e1 e2) (n1 - n2)&quot;</span>
+  <span class="delimiter">|</span> E_AMult<span class="delimiter">:</span> <span class="string">&quot;[| aevalR&#39; e1 n1; aevalR&#39; e2 n2 |] ==&gt; aevalR&#39; (AMult e1 e2) (n1 * n2)&quot;</span>
+  <span class="delimiter">|</span> E_ADiv<span class="delimiter">:</span> <span class="string">&quot;[| aevalR&#39; e1 n1; aevalR&#39; e2 n2; n2 * n3 = n1 |] ==&gt; aevalR&#39; (ADiv a1 a2) n3&quot;</span>
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Adding nondeterminism *}</span>
+
+<span class="command">datatype</span> aexp&#39;&#39; <span class="delimiter">=</span> AAny <span class="delimiter">|</span> ANum nat <span class="delimiter">|</span> APlus aexp&#39;&#39; aexp&#39;&#39; <span class="delimiter">|</span> AMinus aexp&#39;&#39; aexp&#39;&#39; <span class="delimiter">|</span> AMult aexp&#39;&#39; aexp&#39;&#39;
+
+<span class="command">inductive</span> aevalR&#39;&#39; <span class="delimiter">::</span> <span class="string">&quot;aexp&#39;&#39; =&gt; nat =&gt; bool&quot;</span> <span class="keyword2">where</span>
+  E_Any<span class="delimiter">:</span> <span class="string">&quot;aevalR&#39;&#39; AAny n&quot;</span>
+  <span class="delimiter">|</span> E_ANum<span class="delimiter">:</span> <span class="string">&quot;aevalR&#39;&#39; (ANum n) n&quot;</span>
+  <span class="delimiter">|</span> E_APlus<span class="delimiter">:</span> <span class="string">&quot;[| aevalR&#39;&#39; e1 n1; aevalR&#39;&#39; e2 n2 |] ==&gt; aevalR&#39;&#39; (APlus e1 e2) (n1 + n2)&quot;</span>
+  <span class="delimiter">|</span> E_AMinus<span class="delimiter">:</span> <span class="string">&quot;[| aevalR&#39;&#39; e1 n1; aevalR&#39;&#39; e2 n2 |] ==&gt; aevalR&#39;&#39; (AMinus e1 e2) (n1 - n2)&quot;</span>
+  <span class="delimiter">|</span> E_AMult<span class="delimiter">:</span> <span class="string">&quot;[| aevalR&#39;&#39; e1 n1; aevalR&#39;&#39; e2 n2 |] ==&gt; aevalR&#39;&#39; (AMult e1 e2) (n1 * n2)&quot;</span>
+
+<span class="command">subsection</span> <span class="verbatim">{* Expressions With Variables *}</span>
+<span class="command">subsubsection</span> <span class="verbatim">{* Identifiers *}</span>
+
+<span class="command">datatype</span> id <span class="delimiter">=</span> Id nat
+
+<span class="command">theorem</span> eq_id_dec<span class="delimiter">:</span> <span class="string">&quot;!!id1 id2 :: id. {id1 = id2} &brvbar; {id1 &ne; id2}&quot;</span>
+<span class="command">apply</span> <span class="delimiter">(</span>case_tac id1<span class="delimiter">,</span> case_tac id2<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+<span class="command">by</span> <span class="delimiter">(</span>rule eq_nat_dec<span class="delimiter">)</span>
+
+<span class="command">fun</span> eq_id_dec <span class="keyword2">where</span>
+  <span class="string">&quot;eq_id_dec id1 id2 = (id1 = id2)&quot;</span>
+
+<span class="command">lemma</span> eq_id<span class="delimiter">:</span> <span class="string">&quot;(if eq_id_dec x x then p else q) = p&quot;</span> <span class="command">by</span> simp
+
+<span class="comment">(* Exercise: 1 star, optional (neq_id) *)</span>
+<span class="command">lemma</span> neq_id<span class="delimiter">:</span> <span class="string">&quot;x &ne; y ==&gt; (if eq_id_dec x y then p else q) = q&quot;</span> <span class="command">by</span> simp
+
+<span class="command">subsubsection</span> <span class="verbatim">{* States *}</span>
+
+<span class="command">type_synonym</span> state <span class="delimiter">=</span> <span class="string">&quot;id =&gt; nat&quot;</span>
+
+<span class="command">fun</span> empty_state <span class="delimiter">::</span> state <span class="keyword2">where</span>
+  <span class="string">&quot;empty_state _ = 0&quot;</span>
+<span class="command">fun</span> update <span class="delimiter">::</span> <span class="string">&quot;state =&gt; id =&gt; nat =&gt; state&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;update st x n x&#39; = (if eq_id_dec x x&#39; then n else st x&#39;)&quot;</span>
+
+<span class="comment">(* Exercise: 1 star (update_eq) *)</span>
+<span class="command">theorem</span> update_eq<span class="delimiter">:</span> <span class="string">&quot;update st x n x = n&quot;</span> <span class="command">by</span> simp
+
+<span class="comment">(* Exercise: 1 star (update_neq) *)</span>
+<span class="command">theorem</span> udpate_neq<span class="delimiter">:</span> <span class="string">&quot;x2 &ne; x1 ==&gt; update st x2 n x1 = st x1&quot;</span> <span class="command">by</span> simp
+
+<span class="comment">(* Exercise: 1 star (update_example) *)</span>
+<span class="command">theorem</span> update_example<span class="delimiter">:</span> <span class="string">&quot;update empty_state (Id 2) n (Id 3) = 0&quot;</span> <span class="command">by</span> simp
+
+<span class="comment">(* Exercise: 1 star (update_shadow) *)</span>
+<span class="command">theorem</span> update_shadow<span class="delimiter">:</span> <span class="string">&quot;update (update st x2 n1) x2 n2 x1 = update st x2 n2 x1&quot;</span> <span class="command">by</span> simp
+
+<span class="comment">(* Exercise: 2 stars (update_same) *)</span>
+<span class="command">theorem</span> update_same<span class="delimiter">:</span> <span class="string">&quot;st x1 = n1 ==&gt; update st x1 n1 x2 = st x2&quot;</span> <span class="command">by</span> auto
+
+<span class="comment">(* Exercise: 3 stars (update_permute) *)</span>
+<span class="command">theorem</span> update_permute<span class="delimiter">:</span> <span class="string">&quot;x2 &ne; x1 ==&gt; update (update st x2 n1) x1 n2 x3 = update (update st x1 n2) x2 n1 x3&quot;</span>
+<span class="command">by</span> auto
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Syntax *}</span>
+
+<span class="command">datatype</span> aexp3 <span class="delimiter">=</span> ANum nat <span class="delimiter">|</span> AId id <span class="delimiter">|</span> APlus aexp3 aexp3 <span class="delimiter">|</span> AMinus aexp3 aexp3 <span class="delimiter">|</span> AMult aexp3 aexp3
+<span class="command">abbreviation</span> X <span class="keyword2">where</span> <span class="string">&quot;X &equiv; Id 0&quot;</span>
+<span class="command">abbreviation</span> Y <span class="keyword2">where</span> <span class="string">&quot;Y &equiv; Id 1&quot;</span>
+<span class="command">abbreviation</span> Z <span class="keyword2">where</span> <span class="string">&quot;Z &equiv; Id 2&quot;</span>
+
+<span class="command">datatype</span> bexp3 <span class="delimiter">=</span> BTrue <span class="delimiter">|</span> BFalse <span class="delimiter">|</span> BEq aexp3 aexp3 <span class="delimiter">|</span> BLe aexp3 aexp3 <span class="delimiter">|</span> BNot bexp3 <span class="delimiter">|</span> BAnd bexp3 bexp3
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Evaluation *}</span>
+
+<span class="command">fun</span> aeval3 <span class="keyword2">where</span>
+  <span class="string">&quot;aeval3 st (ANum n) = n&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;aeval3 st (AId x) = st x&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;aeval3 st (APlus a1 a2) = aeval3 st a1 + aeval3 st a2&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;aeval3 st (AMinus a1 a2) = aeval3 st a1 - aeval3 st a2&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;aeval3 st (AMult a1 a2) = aeval3 st a1 * aeval3 st a2&quot;</span>
+
+<span class="command">fun</span> beval3 <span class="keyword2">where</span>
+  <span class="string">&quot;beval3 st BTrue = True&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;beval3 st BFalse = False&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;beval3 st (BEq a1 a2) = (aeval3 st a1 = aeval3 st a2)&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;beval3 st (BLe a1 a2) = (aeval3 st a1 &le; aeval3 st a2)&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;beval3 st (BNot b1) = (&not; beval3 st b1)&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;beval3 st (BAnd b1 b2) = (beval3 st b1 &and; beval3 st b2)&quot;</span>
+
+<span class="command">lemma</span> aexp1<span class="delimiter">:</span> <span class="string">&quot;aeval3 (update empty_state x 5) (APlus (ANum 3) (AMult (AId x) (ANum 2))) = 13&quot;</span>
+<span class="command">by</span> <span class="delimiter">(</span>simp add<span class="delimiter">:</span> sumbool.left<span class="delimiter">)</span>
+
+<span class="command">lemma</span> bexp1<span class="delimiter">:</span> <span class="string">&quot;beval3 (update empty_state x 5) (BAnd BTrue (BNot (BLe (AId x) (ANum 4)))) = True&quot;</span>
+<span class="command">by</span> <span class="delimiter">(</span>simp add<span class="delimiter">:</span> sumbool.left<span class="delimiter">)</span>
+
+<span class="command">subsection</span> <span class="verbatim">{* Commands *}</span>
+<span class="command">subsubsection</span> <span class="verbatim">{* Syntax *}</span>
+
+<span class="command">datatype</span> com <span class="delimiter">=</span> CSkip <span class="delimiter">|</span> CAss id aexp3 <span class="delimiter">|</span> CSeq com com <span class="delimiter">|</span> CIf bexp3 com com <span class="delimiter">|</span> CWhile bexp3 com
+
+<span class="command">notation</span>
+  CSkip <span class="delimiter">(</span><span class="string">&quot;SKIP&quot;</span><span class="delimiter">)</span> <span class="keyword2">and</span>
+  CAss <span class="delimiter">(</span><span class="string">&quot;_ ::= _&quot;</span> <span class="delimiter">[</span>50<span class="delimiter">,</span>50<span class="delimiter">]</span> 90<span class="delimiter">)</span> <span class="keyword2">and</span>
+  CSeq <span class="delimiter">(</span><span class="keyword2">infixr</span> <span class="string">&quot;;;&quot;</span> 30<span class="delimiter">)</span> <span class="keyword2">and</span>
+  CWhile <span class="delimiter">(</span><span class="string">&quot;WHILE _ DO _ END&quot;</span> 90<span class="delimiter">)</span> <span class="keyword2">and</span>
+  CIf <span class="delimiter">(</span><span class="string">&quot;IF _ THEN _ ELSE _ FI&quot;</span> 80<span class="delimiter">)</span>
+
+<span class="command">definition</span> fact_in_Isabelle <span class="delimiter">::</span> com <span class="keyword2">where</span>
+  <span class="string">&quot;fact_in_Isabelle &equiv;
+    Z ::= AId X ;;
+    Y ::= ANum 1 ;;
+    WHILE BNot (BEq (AId Z) (ANum 0)) DO
+      Y ::= AMult (AId Y) (AId Z) ;;
+      Z ::= AMinus (AId Z) (ANum 1)
+    END&quot;</span>
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Examples *}</span>
+
+<span class="command">definition</span> plus2 <span class="keyword2">where</span>
+  <span class="string">&quot;plus2 &equiv; (X ::= APlus (AId X) (ANum 2))&quot;</span>
+<span class="command">definition</span> XtimesYinZ <span class="keyword2">where</span>
+  <span class="string">&quot;XtimesYinZ &equiv; (Z ::= AMult (AId X) (AId Y))&quot;</span>
+<span class="command">definition</span> subtract_slowly_body <span class="keyword2">where</span>
+  <span class="string">&quot;subtract_slowly_body &equiv; (
+    Z ::= AMinus (AId Z) (ANum 1) ;;
+    X ::= AMinus (AId X) (ANum 1)
+  )&quot;</span>
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Loops *}</span>
+
+<span class="command">definition</span> subtract_slowly <span class="keyword2">where</span>
+  <span class="string">&quot;subtract_slowly &equiv; (
+    WHILE BNot (BEq (AId X) (ANum 0)) DO
+      subtract_slowly_body
+    END
+  )&quot;</span>
+<span class="command">definition</span> subtract_3_from_5_slowly <span class="keyword2">where</span>
+  <span class="string">&quot;subtract_3_from_5_slowly &equiv; (
+    X ::= ANum 3 ;;
+    Z ::= ANum 5 ;;
+    subtract_slowly
+  )&quot;</span>
+
+<span class="command">subsubsection</span> <span class="verbatim">{* An infinite loop *}</span>
+
+<span class="command">definition</span> loop <span class="keyword2">where</span>
+  <span class="string">&quot;loop &equiv; WHILE BTrue DO SKIP END&quot;</span>
+
+<span class="command">subsection</span> <span class="verbatim">{* Evaluation *}</span>
+<span class="command">subsubsection</span> <span class="verbatim">{* Evaluation as a Function (Failed Attempt) *}</span>
+
+<span class="command">fun</span> ceval_fun_no_while <span class="keyword2">where</span>
+  <span class="string">&quot;ceval_fun_no_while st SKIP = st&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;ceval_fun_no_while st (x ::= a1) = update st x (aeval3 st a1)&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;ceval_fun_no_while st (c1 ;; c2) = ceval_fun_no_while (ceval_fun_no_while st c1) c2&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;ceval_fun_no_while st (IF b THEN c1 ELSE c2 FI) = (if (beval3 st b)
+      then ceval_fun_no_while st c1
+      else ceval_fun_no_while st c2)&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;ceval_fun_no_while st (WHILE b DO c END) = st&quot;</span> <span class="comment">(* bogus *)</span>
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Evaluation as a Relation *}</span>
+<span class="command">subsubsection</span> <span class="verbatim">{* Operational Semantics *}</span>
+
+<span class="command">inductive</span> ceval <span class="delimiter">::</span> <span class="string">&quot;com =&gt; state =&gt; state =&gt; bool&quot;</span> <span class="delimiter">(</span><span class="string">&quot;_ %: _ \&lt;Down&gt; _&quot;</span> <span class="delimiter">[</span>39<span class="delimiter">]</span> 40<span class="delimiter">)</span> <span class="keyword2">where</span>
+  E_Skip<span class="delimiter">:</span> <span class="string">&quot;SKIP %: st \&lt;Down&gt; st&quot;</span>
+  <span class="delimiter">|</span> E_Ass<span class="delimiter">:</span> <span class="string">&quot;aeval3 st a1 = n ==&gt; (x ::= a1) %: st \&lt;Down&gt; (update st x n)&quot;</span>
+  <span class="delimiter">|</span> E_Seq<span class="delimiter">:</span> <span class="string">&quot;[| c1 %: st \&lt;Down&gt; st&#39;; c2 %: st&#39; \&lt;Down&gt; st&#39;&#39; |] ==&gt; (c1 ;; c2) %: st \&lt;Down&gt; st&#39;&#39;&quot;</span>
+  <span class="delimiter">|</span> E_IfTrue<span class="delimiter">:</span> <span class="string">&quot;[| beval3 st b = True; c1 %: st \&lt;Down&gt; st&#39; |] ==&gt; (IF b THEN c1 ELSE c2 FI) %: st \&lt;Down&gt; st&#39;&quot;</span>
+  <span class="delimiter">|</span> E_IfFalse<span class="delimiter">:</span> <span class="string">&quot;[| beval3 st b = False; c2 %: st \&lt;Down&gt; st&#39; |] ==&gt; (IF b THEN c1 ELSE c2 FI) %: st \&lt;Down&gt; st&#39;&quot;</span>
+  <span class="delimiter">|</span> E_WhileEnd<span class="delimiter">:</span> <span class="string">&quot;beval3 st b = False ==&gt; (WHILE b DO c END) %: st \&lt;Down&gt; st&quot;</span>
+  <span class="delimiter">|</span> E_WhileLoop<span class="delimiter">:</span> <span class="string">&quot;[| beval3 st b = True; c %: st \&lt;Down&gt; st&#39;; (WHILE b DO c END) %: st&#39; \&lt;Down&gt; st&#39;&#39; |] ==&gt; (WHILE b DO c END) %: st \&lt;Down&gt; st&#39;&#39;&quot;</span>
+
+<span class="command">lemma</span> eval_example1<span class="delimiter">:</span> <span class="string">&quot;(
+  X ::= ANum 2 ;;
+  IF BLe (AId X) (ANum 1)
+    THEN Y ::= ANum 3
+    ELSE Z ::= ANum 4
+  FI) %: empty_state \&lt;Down&gt; (update (update empty_state X 2) Z 4)&quot;</span>
+<span class="command">by</span> <span class="delimiter">(</span>rule<span class="delimiter">+</span><span class="delimiter">,</span> auto<span class="delimiter">,</span> rule<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+
+<span class="comment">(* Exercise: 2 stars (ceval_example2) *)</span>
+<span class="command">lemma</span> ceval_example2<span class="delimiter">:</span> <span class="string">&quot;(X ::= ANum 0;; Y ::= ANum 1;; Z ::= ANum 2)
+  %: empty_state \&lt;Down&gt; (update (update (update empty_state X 0) Y 1) Z 2)&quot;</span>
+<span class="command">by</span> <span class="delimiter">(</span>auto<span class="delimiter">,</span> rule<span class="delimiter">+</span><span class="delimiter">,</span> auto<span class="delimiter">,</span> rule<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+
+<span class="comment">(* Exercise: 3 stars, advanced (pup_to_n) *)</span>
+<span class="command">definition</span> pup_to_n <span class="keyword2">where</span>
+  <span class="string">&quot;pup_to_n &equiv; (
+    Y ::= ANum 0;;
+    WHILE BLe (ANum 1) (AId X) DO
+      Y ::= APlus (AId Y) (AId X);;
+      X ::= AMinus (AId X) (ANum 1)
+    END
+  )&quot;</span>
+
+<span class="command">theorem</span> pup_to_2_ceval<span class="delimiter">:</span>
+  <span class="string">&quot;pup_to_n %: (update empty_state X 2) \&lt;Down&gt;
+    update (update (update (update (update (update empty_state X 2) Y 0) Y 2) X 1) Y 3) X 0&quot;</span>
+<span class="command">unfolding</span> pup_to_n_def
+<span class="command">apply</span> <span class="delimiter">(</span>rule<span class="delimiter">,</span> simp<span class="delimiter">,</span> rule<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+<span class="command">apply</span> <span class="delimiter">(</span>rule<span class="delimiter">,</span> simp<span class="delimiter">,</span> rule<span class="delimiter">,</span> rule<span class="delimiter">,</span> simp<span class="delimiter">,</span> rule<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+<span class="command">apply</span> <span class="delimiter">(</span>rule<span class="delimiter">,</span> simp<span class="delimiter">,</span> rule<span class="delimiter">,</span> rule<span class="delimiter">,</span> simp<span class="delimiter">,</span> rule<span class="delimiter">,</span> rule<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+<span class="command">apply</span> <span class="delimiter">(</span>subst Num.numeral_3_eq_3<span class="delimiter">,</span> subst Num.numeral_2_eq_2<span class="delimiter">,</span> rule E_WhileEnd<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+<span class="command">done</span>
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Determinism of Evaluation *}</span>
+
+<span class="command">lemma</span> ceval_deterministic_lemma<span class="delimiter">:</span> <span class="string">&quot;c %: st \&lt;Down&gt; st&#39; ==&gt; (!!u. c %: st \&lt;Down&gt; u ==&gt; st&#39; = u)&quot;</span>
+<span class="command">using</span> ceval.induct <span class="delimiter">[</span>of c st st&#39; <span class="string">&quot;&lambda;c0 st0 st&#39;0. ((c0 %: st0 \&lt;Down&gt; st&#39;0) --&gt; (&forall;u. (c0 %: st0 \&lt;Down&gt; u) --&gt; (st&#39;0 = u)))&quot;</span><span class="delimiter">]</span>
+<span class="command">apply</span> rule
+<span class="command">apply</span> simp
+<span class="command">proof</span>-
+  <span class="command">fix</span> u sta
+  <span class="command">assume</span> <span class="string">&quot;c %: st \&lt;Down&gt; st&#39;&quot;</span> <span class="string">&quot;c %: st \&lt;Down&gt; u&quot;</span>
+  <span class="command">show</span> <span class="string">&quot;(SKIP %: sta \&lt;Down&gt; sta) --&gt; (&forall;u. (SKIP %: sta \&lt;Down&gt; u) --&gt; sta = u)&quot;</span>
+    <span class="command">by</span> <span class="delimiter">(</span>auto<span class="delimiter">,</span> erule ceval.cases<span class="delimiter">,</span> auto<span class="delimiter">,</span> erule ceval.cases<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+<span class="command">next</span>
+  <span class="command">fix</span> u sta a1 n x
+  <span class="command">assume</span> a<span class="delimiter">:</span> <span class="string">&quot;c %: st \&lt;Down&gt; st&#39;&quot;</span> <span class="string">&quot;c %: st \&lt;Down&gt; u&quot;</span> <span class="string">&quot;aeval3 sta a1 = n&quot;</span>
+  <span class="command">show</span> <span class="string">&quot;(x ::= a1 %: sta \&lt;Down&gt; update sta x n) --&gt; (&forall;u. (x ::= a1 %: sta \&lt;Down&gt; u) --&gt; update sta x n = u)&quot;</span>
+    <span class="command">apply</span> <span class="delimiter">(</span>auto<span class="delimiter">,</span> erule ceval.cases<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+    <span class="command">apply</span> <span class="delimiter">(</span>erule ceval.cases<span class="delimiter">,</span> auto simp add<span class="delimiter">:</span> a<span class="delimiter">)</span>
+    <span class="command">done</span>
+<span class="command">next</span>
+  <span class="command">fix</span> u c1 sta st&#39;a c2 st&#39;&#39;
+  <span class="command">assume</span> a1<span class="delimiter">:</span> <span class="string">&quot;c %: st \&lt;Down&gt; st&#39;&quot;</span> <span class="string">&quot;c %: st \&lt;Down&gt; u&quot;</span>
+  <span class="keyword2">and</span> a2<span class="delimiter">:</span> <span class="string">&quot;c1 %: sta \&lt;Down&gt; st&#39;a&quot;</span> <span class="string">&quot;(c1 %: sta \&lt;Down&gt; st&#39;a) --&gt; (&forall;u. (c1 %: sta \&lt;Down&gt; u) --&gt; st&#39;a = u)&quot;</span>
+  <span class="keyword2">and</span> a3<span class="delimiter">:</span> <span class="string">&quot;c2 %: st&#39;a \&lt;Down&gt; st&#39;&#39;&quot;</span> <span class="string">&quot;(c2 %: st&#39;a \&lt;Down&gt; st&#39;&#39;) --&gt; (&forall;u. (c2 %: st&#39;a \&lt;Down&gt; u) --&gt; st&#39;&#39; = u)&quot;</span>
+  <span class="command">show</span> <span class="string">&quot;((c1 ;; c2) %: sta \&lt;Down&gt; st&#39;&#39;) --&gt; (&forall;u. ((c1 ;; c2) %: sta \&lt;Down&gt; u) --&gt; st&#39;&#39; = u)&quot;</span>
+    <span class="command">proof</span> auto
+      <span class="command">fix</span> u
+      <span class="command">assume</span> <span class="string">&quot;(c1 ;; c2) %: sta \&lt;Down&gt; st&#39;&#39;&quot;</span> <span class="string">&quot;(c1 ;; c2) %: sta \&lt;Down&gt; u&quot;</span>
+      <span class="command">from</span> this<span class="delimiter">(</span>2<span class="delimiter">)</span> <span class="command">obtain</span> u0 <span class="keyword2">where</span>
+        u0<span class="delimiter">:</span> <span class="string">&quot;c1 %: sta \&lt;Down&gt; u0&quot;</span> <span class="string">&quot;c2 %: u0 \&lt;Down&gt; u&quot;</span> <span class="command">by</span> <span class="delimiter">(</span>rule<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+      <span class="command">have</span> 1<span class="delimiter">:</span> <span class="string">&quot;st&#39;a = u0&quot;</span> <span class="command">using</span> u0<span class="delimiter">(</span>1<span class="delimiter">)</span> a2 <span class="command">by</span> simp
+      <span class="command">show</span> <span class="string">&quot;st&#39;&#39; = u&quot;</span> <span class="command">using</span> a3<span class="delimiter">(</span>2<span class="delimiter">)</span> u0<span class="delimiter">(</span>2<span class="delimiter">)</span> <span class="command">by</span> <span class="delimiter">(</span>simp add<span class="delimiter">:</span> a3<span class="delimiter">(</span>1<span class="delimiter">)</span><span class="delimiter">,</span> simp add<span class="delimiter">:</span> 1<span class="delimiter">)</span>
+    <span class="command">qed</span>
+<span class="command">next</span>
+  <span class="command">fix</span> u sta b c1 st&#39;a c2
+  <span class="command">assume</span> a<span class="delimiter">:</span> <span class="string">&quot;c %: st \&lt;Down&gt; st&#39;&quot;</span> <span class="string">&quot;c %: st \&lt;Down&gt; u&quot;</span> <span class="string">&quot;beval3 sta b = True&quot;</span> <span class="string">&quot;c1 %: sta \&lt;Down&gt; st&#39;a&quot;</span> <span class="string">&quot;(c1 %: sta \&lt;Down&gt; st&#39;a) --&gt; (&forall;u. (c1 %: sta \&lt;Down&gt; u) --&gt; st&#39;a = u)&quot;</span>
+  <span class="command">show</span> <span class="string">&quot;(IF b THEN c1 ELSE c2 FI %: sta \&lt;Down&gt; st&#39;a) --&gt; (&forall;u. (IF b THEN c1 ELSE c2 FI %: sta \&lt;Down&gt; u) --&gt; st&#39;a = u)&quot;</span>
+    <span class="command">proof</span> auto
+      <span class="command">fix</span> u
+      <span class="command">assume</span> <span class="string">&quot;IF b THEN c1 ELSE c2 FI %: sta \&lt;Down&gt; st&#39;a&quot;</span> <span class="string">&quot;IF b THEN c1 ELSE c2 FI %: sta \&lt;Down&gt; u&quot;</span>
+      <span class="command">from</span> this<span class="delimiter">(</span>2<span class="delimiter">)</span> <span class="command">have</span> <span class="string">&quot;c1 %: sta \&lt;Down&gt; u&quot;</span> <span class="command">by</span> <span class="delimiter">(</span>rule<span class="delimiter">,</span> auto<span class="delimiter">,</span> auto simp add<span class="delimiter">:</span> a<span class="delimiter">(</span>3<span class="delimiter">)</span><span class="delimiter">)</span>
+      <span class="command">thus</span> <span class="string">&quot;st&#39;a = u&quot;</span> <span class="command">using</span> a<span class="delimiter">(</span>5<span class="delimiter">)</span> a<span class="delimiter">(</span>4<span class="delimiter">)</span> <span class="command">by</span> simp
+    <span class="command">qed</span>
+<span class="command">next</span>
+  <span class="command">fix</span> u sta b c2 st&#39;a c1
+  <span class="command">assume</span> a<span class="delimiter">:</span> <span class="string">&quot;c %: st \&lt;Down&gt; st&#39;&quot;</span> <span class="string">&quot;c %: st \&lt;Down&gt; u&quot;</span> <span class="string">&quot;beval3 sta b = False&quot;</span> <span class="string">&quot;c2 %: sta \&lt;Down&gt; st&#39;a&quot;</span> <span class="string">&quot;(c2 %: sta \&lt;Down&gt; st&#39;a) --&gt; (&forall;u. (c2 %: sta \&lt;Down&gt; u) --&gt; st&#39;a = u)&quot;</span>
+  <span class="command">show</span> <span class="string">&quot;(IF b THEN c1 ELSE c2 FI %: sta \&lt;Down&gt; st&#39;a) --&gt; (&forall;u. (IF b THEN c1 ELSE c2 FI %: sta \&lt;Down&gt; u) --&gt; st&#39;a = u)&quot;</span>
+    <span class="command">proof</span> auto
+      <span class="command">fix</span> u
+      <span class="command">assume</span> <span class="string">&quot;IF b THEN c1 ELSE c2 FI %: sta \&lt;Down&gt; st&#39;a&quot;</span> <span class="string">&quot;IF b THEN c1 ELSE c2 FI %: sta \&lt;Down&gt; u&quot;</span>
+      <span class="command">from</span> this<span class="delimiter">(</span>2<span class="delimiter">)</span> <span class="command">have</span> <span class="string">&quot;c2 %: sta \&lt;Down&gt; u&quot;</span> <span class="command">by</span> <span class="delimiter">(</span>rule<span class="delimiter">,</span> auto<span class="delimiter">,</span> auto simp add<span class="delimiter">:</span> a<span class="delimiter">(</span>3<span class="delimiter">)</span><span class="delimiter">)</span>
+      <span class="command">thus</span> <span class="string">&quot;st&#39;a = u&quot;</span> <span class="command">using</span> a<span class="delimiter">(</span>5<span class="delimiter">)</span> a<span class="delimiter">(</span>4<span class="delimiter">)</span> <span class="command">by</span> simp
+    <span class="command">qed</span>
+<span class="command">next</span>
+  <span class="command">fix</span> u sta b ca
+  <span class="command">assume</span> a<span class="delimiter">:</span> <span class="string">&quot;c %: st \&lt;Down&gt; st&#39;&quot;</span> <span class="string">&quot;c %: st \&lt;Down&gt; u&quot;</span> <span class="string">&quot;beval3 sta b = False&quot;</span>
+  <span class="command">show</span> <span class="string">&quot;(WHILE b DO ca END %: sta \&lt;Down&gt; sta) --&gt; (&forall;u. (WHILE b DO ca END %: sta \&lt;Down&gt; u) --&gt; sta = u)&quot;</span>
+    <span class="command">proof</span> auto
+      <span class="command">fix</span> u
+      <span class="command">assume</span> <span class="string">&quot;WHILE b DO ca END %: sta \&lt;Down&gt; sta&quot;</span> <span class="string">&quot;WHILE b DO ca END %: sta \&lt;Down&gt; u&quot;</span>
+      <span class="command">from</span> this<span class="delimiter">(</span>2<span class="delimiter">)</span> <span class="command">show</span> <span class="string">&quot;sta = u&quot;</span>
+        <span class="command">by</span> <span class="delimiter">(</span>rule<span class="delimiter">,</span> auto<span class="delimiter">,</span> auto simp add<span class="delimiter">:</span> a<span class="delimiter">(</span>3<span class="delimiter">)</span><span class="delimiter">)</span>
+    <span class="command">qed</span>
+<span class="command">next</span>
+  <span class="command">fix</span> u sta b ca st&#39;a st&#39;&#39;
+  <span class="command">assume</span> <span class="string">&quot;c %: st \&lt;Down&gt; st&#39;&quot;</span> <span class="string">&quot;c %: st \&lt;Down&gt; u&quot;</span>
+  <span class="keyword2">and</span> a<span class="delimiter">:</span> <span class="string">&quot;beval3 sta b = True&quot;</span> <span class="string">&quot;ca %: sta \&lt;Down&gt; st&#39;a&quot;</span> <span class="string">&quot;(ca %: sta \&lt;Down&gt; st&#39;a) --&gt; (&forall;u. (ca %: sta \&lt;Down&gt; u) --&gt; st&#39;a = u)&quot;</span>
+  <span class="keyword2">and</span> a2<span class="delimiter">:</span> <span class="string">&quot;WHILE b DO ca END %: st&#39;a \&lt;Down&gt; st&#39;&#39;&quot;</span> <span class="string">&quot;(WHILE b DO ca END %: st&#39;a \&lt;Down&gt; st&#39;&#39;) --&gt; (&forall;u. (WHILE b DO ca END %: st&#39;a \&lt;Down&gt; u) --&gt; st&#39;&#39; = u)&quot;</span>
+
+  <span class="command">have</span> b1<span class="delimiter">:</span> <span class="string">&quot;!!u. ca %: sta \&lt;Down&gt; u ==&gt; st&#39;a = u&quot;</span> <span class="command">using</span> a <span class="command">by</span> simp
+  <span class="command">have</span> b2<span class="delimiter">:</span> <span class="string">&quot;!!u. (WHILE b DO ca END) %: st&#39;a \&lt;Down&gt; u ==&gt; st&#39;&#39; = u&quot;</span> <span class="command">using</span> a2 <span class="command">by</span> simp
+  <span class="command">show</span> <span class="string">&quot;(WHILE b DO ca END %: sta \&lt;Down&gt; st&#39;&#39;) --&gt; (&forall;u. (WHILE b DO ca END %: sta \&lt;Down&gt; u) --&gt; st&#39;&#39; = u)&quot;</span>
+    <span class="command">proof</span> auto
+      <span class="command">fix</span> u
+      <span class="command">assume</span> a4<span class="delimiter">:</span> <span class="string">&quot;WHILE b DO ca END %: sta \&lt;Down&gt; st&#39;&#39;&quot;</span> <span class="string">&quot;WHILE b DO ca END %: sta \&lt;Down&gt; u&quot;</span>
+      <span class="command">from</span> this<span class="delimiter">(</span>2<span class="delimiter">)</span> <span class="command">obtain</span> u&#39; <span class="keyword2">where</span>
+        u&#39;<span class="delimiter">:</span> <span class="string">&quot;ca %: sta \&lt;Down&gt; u&#39;&quot;</span> <span class="string">&quot;(WHILE b DO ca END) %: u&#39; \&lt;Down&gt; u&quot;</span> <span class="command">by</span> <span class="delimiter">(</span>rule<span class="delimiter">,</span> auto<span class="delimiter">,</span> auto simp add<span class="delimiter">:</span> a<span class="delimiter">(</span>1<span class="delimiter">)</span><span class="delimiter">)</span>
+      <span class="command">have</span> <span class="string">&quot;st&#39;a = u&#39;&quot;</span> <span class="command">using</span> b1 <span class="delimiter">[</span>OF u&#39;<span class="delimiter">(</span>1<span class="delimiter">)</span><span class="delimiter">]</span> <span class="command">by</span> simp
+      <span class="command">thus</span> <span class="string">&quot;st&#39;&#39; = u&quot;</span> <span class="command">using</span> b2 u&#39;<span class="delimiter">(</span>2<span class="delimiter">)</span> <span class="command">by</span> auto
+    <span class="command">qed</span>
+<span class="command">qed</span> <span class="delimiter">(</span>auto<span class="delimiter">)</span>
+
+<span class="command">theorem</span> ceval_deterministic<span class="delimiter">:</span> <span class="string">&quot;[| c %: st \&lt;Down&gt; st1; c %: st \&lt;Down&gt; st2 |] ==&gt; st1 = st2&quot;</span>
+<span class="command">by</span> <span class="delimiter">(</span>auto simp add<span class="delimiter">:</span> ceval_deterministic_lemma<span class="delimiter">)</span>
+
+<span class="command">subsection</span> <span class="verbatim">{* Reasoning About Imp Programs *}</span>
+
+<span class="command">theorem</span> plus2_spec<span class="delimiter">:</span> <span class="string">&quot;[| st X = n; plus2 %: st \&lt;Down&gt; st&#39; |] ==&gt; st&#39; X = n + 2&quot;</span>
+<span class="command">unfolding</span> plus2_def
+<span class="command">by</span> <span class="delimiter">(</span>erule ceval.cases<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+
+<span class="comment">(* Exercise: 3 stars (XtimesYinZ_spec) *)</span>
+<span class="command">theorem</span> XtimesYinZ_spec<span class="delimiter">:</span> <span class="string">&quot;XtimesYinZ %: st \&lt;Down&gt; st&#39; ==&gt; st&#39; Z = st X * st Y&quot;</span>
+<span class="command">unfolding</span> XtimesYinZ_def
+<span class="command">by</span> <span class="delimiter">(</span>erule ceval.cases<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+
+<span class="comment">(* Exercise: 3 stars (loop_never_stops) *)</span>
+<span class="command">lemma</span> while_induction<span class="delimiter">:</span>
+  <span class="keyword2">assumes</span> red<span class="delimiter">:</span> <span class="string">&quot;(WHILE b DO c END) %: st \&lt;Down&gt; st&#39;&quot;</span>
+  <span class="keyword2">and</span> base<span class="delimiter">:</span> <span class="string">&quot;!!t t&#39;. [| beval3 t b = False; t&#39; = t |] ==&gt; P t t&#39;&quot;</span>
+  <span class="keyword2">and</span> step<span class="delimiter">:</span> <span class="string">&quot;!!t t&#39; t&#39;&#39;. [| beval3 t b = True; c %: t \&lt;Down&gt; t&#39;; (WHILE b DO c END) %: t&#39; \&lt;Down&gt; t&#39;&#39;; P t&#39; t&#39;&#39; |] ==&gt; P t t&#39;&#39;&quot;</span>
+  <span class="keyword2">shows</span> <span class="string">&quot;P st st&#39;&quot;</span>
+<span class="command">proof</span>-
+  <span class="command">have</span> <span class="string">&quot;(WHILE b DO c END) %: st \&lt;Down&gt; st&#39; ==&gt; P st st&#39;&quot;</span>
+    <span class="command">using</span> ceval.induct <span class="delimiter">[</span>of _ _ _ <span class="string">&quot;&lambda;c0 t t&#39;. WHILE b DO c END = c0 --&gt; P t t&#39;&quot;</span><span class="delimiter">]</span> <span class="command">apply</span> rule
+    <span class="command">apply</span> <span class="delimiter">(</span>simp<span class="delimiter">,</span> auto<span class="delimiter">,</span> simp add<span class="delimiter">:</span> base<span class="delimiter">)</span>
+    <span class="command">apply</span> <span class="delimiter">(</span>fastforce simp add<span class="delimiter">:</span> step<span class="delimiter">)</span>
+    <span class="command">apply</span> <span class="delimiter">(</span>fastforce simp add<span class="delimiter">:</span> step<span class="delimiter">)</span>
+    <span class="command">done</span>
+  <span class="command">thus</span> <span class="var">?thesis</span> <span class="command">by</span> <span class="delimiter">(</span>simp add<span class="delimiter">:</span> red<span class="delimiter">)</span>
+<span class="command">qed</span>
+
+<span class="command">theorem</span> loop_never_stops<span class="delimiter">:</span> <span class="string">&quot;&not; (loop %: st \&lt;Down&gt; st&#39;)&quot;</span>
+<span class="command">proof</span> <span class="delimiter">(</span>unfold loop_def<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+  <span class="command">assume</span> p<span class="delimiter">:</span> <span class="string">&quot;WHILE BTrue DO SKIP END %: st \&lt;Down&gt; st&#39;&quot;</span>
+  <span class="command">show</span> <span class="string">&quot;False&quot;</span>
+    <span class="command">using</span> while_induction <span class="delimiter">[</span>of BTrue SKIP st st&#39; <span class="string">&quot;&lambda;_. &lambda;_. False&quot;</span><span class="delimiter">]</span>
+    <span class="command">by</span> <span class="delimiter">(</span>rule<span class="delimiter">,</span> simp add<span class="delimiter">:</span> p<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+<span class="command">qed</span>
+
+<span class="comment">(* Exercise: 3 stars (no_whilesR) *)</span>
+<span class="command">primrec</span> no_whiles <span class="keyword2">where</span>
+  <span class="string">&quot;no_whiles SKIP = True&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;no_whiles (_ ::= _) = True&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;no_whiles (c1 ;; c2) = (no_whiles c1 &and; no_whiles c2)&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;no_whiles (IF _ THEN ct ELSE cf FI) = (no_whiles ct &and; no_whiles cf)&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;no_whiles (WHILE _ DO _ END) = False&quot;</span>
+
+<span class="command">inductive</span> no_whilesR <span class="keyword2">where</span>
+  NW_Skip<span class="delimiter">:</span> <span class="string">&quot;no_whilesR SKIP&quot;</span>
+  <span class="delimiter">|</span> NW_Seq<span class="delimiter">:</span> <span class="string">&quot;no_whilesR (x ::= aexp)&quot;</span>
+  <span class="delimiter">|</span> NW_Ass<span class="delimiter">:</span> <span class="string">&quot;[| no_whilesR e1; no_whilesR e2 |] ==&gt; no_whilesR (e1 ;; e2)&quot;</span>
+  <span class="delimiter">|</span> NW_If<span class="delimiter">:</span> <span class="string">&quot;[| no_whilesR e1; no_whilesR e2 |] ==&gt; no_whilesR (IF b THEN e1 ELSE e2 FI)&quot;</span>
+
+<span class="command">theorem</span> no_whiles_eqv<span class="delimiter">:</span> <span class="string">&quot;no_whiles c &lt;-&gt; no_whilesR c&quot;</span>
+<span class="command">apply</span> rule
+  <span class="command">apply</span> <span class="delimiter">(</span>induct c<span class="delimiter">,</span> auto<span class="delimiter">,</span> rule<span class="delimiter">+</span><span class="delimiter">,</span> auto<span class="delimiter">,</span> rule<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+  <span class="command">apply</span> <span class="delimiter">(</span>erule no_whilesR.induct<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+<span class="command">done</span>
+
+<span class="comment">(* Exercise: 4 stars (no_whiles_terminating) *)</span>
+<span class="command">theorem</span> no_whiles_terminating<span class="delimiter">:</span> <span class="string">&quot;no_whilesR c ==&gt; (!!st. c %: st \&lt;Down&gt; (ceval_fun_no_while st c))&quot;</span>
+<span class="command">using</span> no_whilesR.induct <span class="delimiter">[</span>of c <span class="string">&quot;&lambda;c0. &forall;st. c0 %: st \&lt;Down&gt; (ceval_fun_no_while st c0)&quot;</span><span class="delimiter">]</span> <span class="command">apply</span> <span class="delimiter">(</span>rule<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+<span class="command">proof</span>-
+  <span class="command">fix</span> st
+  <span class="command">assume</span> <span class="string">&quot;no_whilesR c&quot;</span> <span class="command">show</span> <span class="string">&quot;&forall;x. SKIP %: x \&lt;Down&gt; ceval_fun_no_while x SKIP&quot;</span> <span class="command">by</span> <span class="delimiter">(</span>auto<span class="delimiter">,</span> rule<span class="delimiter">)</span>
+<span class="command">next</span>
+  <span class="command">fix</span> st x aexp
+  <span class="command">assume</span> <span class="string">&quot;no_whilesR c&quot;</span> <span class="command">show</span> <span class="string">&quot;&forall;xa. x ::= aexp %: xa \&lt;Down&gt; ceval_fun_no_while xa (x ::= aexp)&quot;</span> <span class="command">by</span> <span class="delimiter">(</span>auto<span class="delimiter">,</span> rule<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+<span class="command">next</span>
+  <span class="command">fix</span> st e1 e2
+  <span class="command">assume</span> a<span class="delimiter">:</span> <span class="string">&quot;no_whilesR c&quot;</span> <span class="string">&quot;no_whilesR e1&quot;</span> <span class="string">&quot;&forall;x. e1 %: x \&lt;Down&gt; ceval_fun_no_while x e1&quot;</span> <span class="string">&quot;no_whilesR e2&quot;</span> <span class="string">&quot;&forall;x. e2 %: x \&lt;Down&gt; ceval_fun_no_while x e2&quot;</span>
+  <span class="command">show</span> <span class="string">&quot;&forall;x. (e1 ;; e2) %: x \&lt;Down&gt; ceval_fun_no_while x (e1 ;; e2)&quot;</span>
+    <span class="command">proof</span> <span class="delimiter">(</span>rule<span class="delimiter">,</span> rule<span class="delimiter">)</span>
+      <span class="command">fix</span> x
+      <span class="command">{</span>
+        <span class="command">show</span> <span class="string">&quot;e1 %: x \&lt;Down&gt; ceval_fun_no_while x e1&quot;</span>
+          <span class="command">using</span> a<span class="delimiter">(</span>3<span class="delimiter">)</span> <span class="command">by</span> simp
+      <span class="command">}</span>
+      <span class="command">{</span>
+        <span class="command">show</span> <span class="string">&quot;e2 %: ceval_fun_no_while x e1 \&lt;Down&gt; ceval_fun_no_while x (e1 ;; e2)&quot;</span>
+          <span class="command">using</span> a<span class="delimiter">(</span>5<span class="delimiter">)</span> <span class="command">by</span> simp
+      <span class="command">}</span>
+    <span class="command">qed</span>
+<span class="command">next</span>
+  <span class="command">fix</span> st e1 e2 b
+  <span class="command">assume</span> <span class="string">&quot;no_whilesR c&quot;</span>
+  <span class="keyword2">and</span> a1<span class="delimiter">:</span> <span class="string">&quot;no_whilesR e1&quot;</span> <span class="string">&quot;&forall;x. e1 %: x \&lt;Down&gt; ceval_fun_no_while x e1&quot;</span>
+  <span class="keyword2">and</span> a2<span class="delimiter">:</span> <span class="string">&quot;no_whilesR e2&quot;</span> <span class="string">&quot;&forall;x. e2 %: x \&lt;Down&gt; ceval_fun_no_while x e2&quot;</span>
+  <span class="command">show</span> <span class="string">&quot;&forall;x. IF b THEN e1 ELSE e2 FI %: x \&lt;Down&gt; ceval_fun_no_while x (IF b THEN e1 ELSE e2 FI)&quot;</span>
+    <span class="command">apply</span> <span class="delimiter">(</span>auto<span class="delimiter">)</span>
+    <span class="command">apply</span> <span class="delimiter">(</span>rule E_IfTrue<span class="delimiter">,</span> simp<span class="delimiter">,</span> simp add<span class="delimiter">:</span> a1<span class="delimiter">(</span>2<span class="delimiter">)</span><span class="delimiter">)</span>
+    <span class="command">apply</span> <span class="delimiter">(</span>rule E_IfFalse<span class="delimiter">,</span> simp<span class="delimiter">,</span> simp add<span class="delimiter">:</span> a2<span class="delimiter">(</span>2<span class="delimiter">)</span><span class="delimiter">)</span>
+    <span class="command">done</span>
+<span class="command">qed</span> <span class="delimiter">(</span>auto<span class="delimiter">)</span>
+
+
+<span class="command">subsection</span> <span class="verbatim">{* Additional Exercises *}</span>
+
+<span class="comment">(* Exercise: 3 stars (stack_compiler) *)</span>
+
+<span class="command">datatype</span> sinstr <span class="delimiter">=</span> SPush nat <span class="delimiter">|</span> SLoad id <span class="delimiter">|</span> SPlus <span class="delimiter">|</span> SMinus <span class="delimiter">|</span> SMult
+
+<span class="command">fun</span> s_execute <span class="delimiter">::</span> <span class="string">&quot;state =&gt; nat list =&gt; sinstr list =&gt; nat list&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;s_execute st l [] = l&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;s_execute st l ((SPush n) # xs) = s_execute st (n # l) xs&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;s_execute st l ((SLoad x) # xs) = s_execute st (st x # l) xs&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;s_execute st [] (SPlus # xs) = s_execute st [] xs&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;s_execute st [y] (SPlus # xs) = s_execute st [y] xs&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;s_execute st (y1 # y2 # ys) (SPlus # xs) = s_execute st ((y2 + y1) # ys) xs&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;s_execute st [] (SMinus # xs) = s_execute st [] xs&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;s_execute st [y] (SMinus # xs) = s_execute st [y] xs&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;s_execute st (y1 # y2 # ys) (SMinus # xs) = s_execute st ((y2 - y1) # ys) xs&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;s_execute st [] (SMult # xs) = s_execute st [] xs&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;s_execute st [y] (SMult # xs) = s_execute st [y] xs&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;s_execute st (y1 # y2 # ys) (SMult # xs) = s_execute st ((y2 * y1) # ys) xs&quot;</span>
+
+<span class="command">lemma</span> s_execute1<span class="delimiter">:</span> <span class="string">&quot;s_execute empty_state [] [SPush 5, SPush 3, SPush 1, SMinus] = [2,5]&quot;</span>
+<span class="command">by</span> simp
+
+<span class="command">lemma</span> s_execute2<span class="delimiter">:</span> <span class="string">&quot;s_execute (update empty_state X 3) [3,4] [SPush 4, SLoad X, SMult, SPlus] = [15, 4]&quot;</span>
+<span class="command">by</span> simp
+
+<span class="command">fun</span> s_compile <span class="delimiter">::</span> <span class="string">&quot;aexp3 =&gt; sinstr list&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;s_compile (ANum n) = [SPush n]&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;s_compile (AId x) = [SLoad x]&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;s_compile (APlus y1 y2) = s_compile y1 @ s_compile y2 @ [SPlus]&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;s_compile (AMinus y1 y2) = s_compile y1 @ s_compile y2 @ [SMinus]&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;s_compile (AMult y1 y2) = s_compile y1 @ s_compile y2 @ [SMult]&quot;</span>
+
+<span class="command">lemma</span> s_compile1<span class="delimiter">:</span> <span class="string">&quot;s_compile (AMinus (AId X) (AMult (ANum 2) (AId Y))) = [SLoad X, SPush 2, SLoad Y, SMult, SMinus]&quot;</span>
+<span class="command">by</span> simp
+
+<span class="comment">(* Exercise: 3 stars, advanced (stack_compiler_correct) *)</span>
+
+<span class="command">lemma</span> s_compile_correct_app<span class="delimiter">:</span> <span class="string">&quot;!!st l. s_execute st l (e1 @ e2) = s_execute st (s_execute st l e1) e2&quot;</span>
+<span class="command">apply</span> <span class="delimiter">(</span>induct e1<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+<span class="command">apply</span> <span class="delimiter">(</span>case_tac a<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+<span class="command">apply</span> <span class="delimiter">(</span>case_tac l<span class="delimiter">,</span> auto<span class="delimiter">,</span> case_tac list<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+<span class="command">apply</span> <span class="delimiter">(</span>case_tac l<span class="delimiter">,</span> auto<span class="delimiter">,</span> case_tac list<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+<span class="command">apply</span> <span class="delimiter">(</span>case_tac l<span class="delimiter">,</span> auto<span class="delimiter">,</span> case_tac list<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+<span class="command">done</span>
+
+<span class="command">lemma</span> s_compile_correct&#39;<span class="delimiter">:</span> <span class="string">&quot;!!st l. s_execute st l (s_compile e) &equiv; [aeval3 st e] @ l&quot;</span>
+<span class="command">apply</span> <span class="delimiter">(</span>induct e<span class="delimiter">,</span> auto<span class="delimiter">)</span> <span class="command">by</span> <span class="delimiter">(</span>auto simp add<span class="delimiter">:</span> s_compile_correct_app<span class="delimiter">)</span>
+
+<span class="command">theorem</span> s_compile_correct<span class="delimiter">:</span> <span class="string">&quot;s_execute st [] (s_compile e) = [aeval3 st e]&quot;</span>
+<span class="command">by</span> <span class="delimiter">(</span>simp add<span class="delimiter">:</span> s_compile_correct&#39; <span class="delimiter">[</span>of st <span class="string">&quot;[]&quot;</span><span class="delimiter">]</span><span class="delimiter">)</span>
+
+<span class="comment">(* Exercise: 5 stars, advanced (break_imp) *)</span>
+<span class="command">datatype</span> com&#39; <span class="delimiter">=</span> CSkip <span class="delimiter">|</span> CBreak <span class="delimiter">|</span> CAss id aexp3 <span class="delimiter">|</span> CSeq com&#39; com&#39; <span class="delimiter">|</span> CIf bexp3 com&#39; com&#39; <span class="delimiter">|</span> CWhile bexp3 com&#39;
+
+<span class="command">notation</span>
+  CSkip <span class="delimiter">(</span><span class="string">&quot;SKIP&#39;&quot;</span><span class="delimiter">)</span> <span class="keyword2">and</span>
+  CBreak <span class="delimiter">(</span><span class="string">&quot;BREAK&#39;&quot;</span><span class="delimiter">)</span> <span class="keyword2">and</span>
+  CAss <span class="delimiter">(</span><span class="string">&quot;_ ::=&#39; _&quot;</span> <span class="delimiter">[</span>50<span class="delimiter">,</span>50<span class="delimiter">]</span> 90<span class="delimiter">)</span> <span class="keyword2">and</span>
+  CSeq <span class="delimiter">(</span><span class="keyword2">infixr</span> <span class="string">&quot;;;;&quot;</span> 30<span class="delimiter">)</span> <span class="keyword2">and</span>
+  CWhile <span class="delimiter">(</span><span class="string">&quot;WHILE&#39; _ DO _ END&quot;</span> 90<span class="delimiter">)</span> <span class="keyword2">and</span>
+  CIf <span class="delimiter">(</span><span class="string">&quot;IF&#39; _ THEN _ ELSE _ FI&quot;</span> 80<span class="delimiter">)</span>
+
+<span class="command">datatype</span> status <span class="delimiter">=</span> SContinue <span class="delimiter">|</span> SBreak
+
+<span class="command">inductive</span> ceval&#39; <span class="delimiter">::</span> <span class="string">&quot;com&#39; =&gt; state =&gt; status =&gt; state =&gt; bool&quot;</span> <span class="delimiter">(</span><span class="string">&quot;_ %: _ \&lt;Down&gt; _ %: _&quot;</span><span class="delimiter">)</span> <span class="keyword2">where</span>
+  E_Skip<span class="delimiter">:</span> <span class="string">&quot;SKIP&#39; %: st \&lt;Down&gt; SContinue %: st&quot;</span>
+  <span class="delimiter">|</span> E_Break<span class="delimiter">:</span> <span class="string">&quot;BREAK&#39; %: st \&lt;Down&gt; SBreak %: st&quot;</span>
+  <span class="delimiter">|</span> E_Ass<span class="delimiter">:</span> <span class="string">&quot;aeval3 st a1 = n ==&gt; (x ::=&#39; a1) %: st \&lt;Down&gt; SContinue %: (update st x n)&quot;</span>
+  <span class="delimiter">|</span> E_Seq_Break<span class="delimiter">:</span> <span class="string">&quot;c1 %: st \&lt;Down&gt; SBreak %: st&#39; ==&gt; (c1 ;;; c2) %: st \&lt;Down&gt; SBreak %: st&#39;&quot;</span>
+  <span class="delimiter">|</span> E_Seq_Continue<span class="delimiter">:</span> <span class="string">&quot;[| c1 %: st \&lt;Down&gt; SContinue %: st&#39;; c2 %: st&#39; \&lt;Down&gt; s %: st&#39;&#39; |] ==&gt; (c1 ;;; c2) %: st \&lt;Down&gt; s %: st&#39;&#39;&quot;</span>
+  <span class="delimiter">|</span> E_IfTrue<span class="delimiter">:</span> <span class="string">&quot;[| beval3 st b = True; c1 %: st \&lt;Down&gt; s %: st&#39; |] ==&gt; (IF&#39; b THEN c1 ELSE c2 FI) %: st \&lt;Down&gt; s %: st&#39;&quot;</span>
+  <span class="delimiter">|</span> E_IfFalse<span class="delimiter">:</span> <span class="string">&quot;[| beval3 st b = False; c2 %: st \&lt;Down&gt; s %: st&#39; |] ==&gt; (IF&#39; b THEN c1 ELSE c2 FI) %: st \&lt;Down&gt; s %: st&#39;&quot;</span>
+  <span class="delimiter">|</span> E_WhileEnd<span class="delimiter">:</span> <span class="string">&quot;beval3 st b = False ==&gt; (WHILE&#39; b DO c END) %: st \&lt;Down&gt; SContinue %: st&quot;</span>
+  <span class="delimiter">|</span> E_WhileLoop_Break<span class="delimiter">:</span> <span class="string">&quot;[| beval3 st b = True; c %: st \&lt;Down&gt; SBreak %: st&#39; |] ==&gt; (WHILE&#39; b DO c END) %: st \&lt;Down&gt; SContinue %: st&#39;&#39;&quot;</span>
+  <span class="delimiter">|</span> E_WhileLoop_Continue<span class="delimiter">:</span> <span class="string">&quot;[| beval3 st b = True; c %: st \&lt;Down&gt; SContinue %: st&#39;; (WHILE&#39; b DO c END) %: st&#39; \&lt;Down&gt; SContinue %: st&#39;&#39; |]
+      ==&gt; (WHILE&#39; b DO c END) %: st \&lt;Down&gt; SContinue %: st&#39;&#39;&quot;</span>
+
+<span class="command">theorem</span> break_ignore<span class="delimiter">:</span> <span class="string">&quot;(BREAK&#39; ;;; c) %: st \&lt;Down&gt; s %: st&#39; ==&gt; st = st&#39;&quot;</span>
+<span class="command">apply</span> <span class="delimiter">(</span>induct c<span class="delimiter">)</span>
+  <span class="command">apply</span> <span class="delimiter">(</span>erule ceval&#39;.cases<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+  <span class="command">apply</span> <span class="delimiter">(</span>erule ceval&#39;.cases<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+  <span class="command">apply</span> <span class="delimiter">(</span>erule ceval&#39;.cases<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+  <span class="command">apply</span> <span class="delimiter">(</span>erule ceval&#39;.cases<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+  <span class="command">apply</span> <span class="delimiter">(</span>erule ceval&#39;.cases<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+  <span class="command">apply</span> <span class="delimiter">(</span>erule ceval&#39;.cases<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+  <span class="command">apply</span> <span class="delimiter">(</span>erule ceval&#39;.cases<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+  <span class="command">apply</span> <span class="delimiter">(</span>erule ceval&#39;.cases<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+  <span class="command">apply</span> <span class="delimiter">(</span>erule ceval&#39;.cases<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+  <span class="command">apply</span> <span class="delimiter">(</span>erule ceval&#39;.cases<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+  <span class="command">apply</span> <span class="delimiter">(</span>erule ceval&#39;.cases<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+  <span class="command">apply</span> <span class="delimiter">(</span>erule ceval&#39;.cases<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+  <span class="command">apply</span> <span class="delimiter">(</span>erule ceval&#39;.cases<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+  <span class="command">apply</span> <span class="delimiter">(</span>erule ceval&#39;.cases<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+  <span class="command">apply</span> <span class="delimiter">(</span>erule ceval&#39;.cases<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+  <span class="command">apply</span> <span class="delimiter">(</span>erule ceval&#39;.cases<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+  <span class="command">apply</span> <span class="delimiter">(</span>erule ceval&#39;.cases<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+  <span class="command">apply</span> <span class="delimiter">(</span>erule ceval&#39;.cases<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+<span class="command">done</span>
+
+<span class="command">theorem</span> while_continue<span class="delimiter">:</span> <span class="string">&quot;WHILE&#39; b DO c END %: st \&lt;Down&gt; s %: st&#39; ==&gt; s = SContinue&quot;</span>
+<span class="command">by</span> <span class="delimiter">(</span>erule ceval&#39;.cases<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+
+<span class="command">theorem</span> while_stops_on_break<span class="delimiter">:</span> <span class="string">&quot;[| beval3 st b; c %: st \&lt;Down&gt; SBreak %: st&#39; |] ==&gt; WHILE&#39; b DO c END %: st \&lt;Down&gt; SContinue %: st&#39;&quot;</span>
+<span class="command">by</span> <span class="delimiter">(</span>rule E_WhileLoop_Break<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+
+<span class="comment">(*
+(* Exercise: 3 stars, advanced, optional (while_break_true) *)
+theorem while_break_true: &quot;[| WHILE&#39; b DO c END %: st \&lt;Down&gt; SContinue %: st&#39;; beval3 st&#39; b |]
+  ==&gt; &exist;st&#39;&#39;. (c %: st&#39;&#39; \&lt;Down&gt; SBreak %: st&#39;)&quot;
+sorry
+
+(* Exercise: 4 stars, advanced, optional (ceval_deterministic) *)
+theorem ceval&#39;_deterministic: &quot;[| c %: st \&lt;Down&gt; s1 %: st1; c %: st \&lt;Down&gt; s2 %: st2 |] ==&gt; st1 = st2 &and; s1 = s2&quot;
+sorry
+
+(*
+counterexample ?
+
+  c = WHILE&#39; bexp3.BTrue DO BREAK&#39; END
+  s1 = SContinue
+  s2 = SContinue
+  st = (&lambda;x. ?)(i<span class="hidden">&#8681;</span><sub>1</sub> := 2, i<span class="hidden">&#8681;</span><sub>2</sub> := 3)
+  st1 = (&lambda;x. ?)(i<span class="hidden">&#8681;</span><sub>1</sub> := 2, i<span class="hidden">&#8681;</span><sub>2</sub> := 2)
+  st2 = (&lambda;x. ?)(i<span class="hidden">&#8681;</span><sub>1</sub> := 2, i<span class="hidden">&#8681;</span><sub>2</sub> := 3)
+*)
+
+*)</span>
+
+<span class="comment">(* Exercise: 3 stars, optional (short_circuit) *)</span>
+<span class="command">fun</span> beval3_shortcircuit <span class="delimiter">::</span> <span class="string">&quot;state =&gt; bexp3 =&gt; bool&quot;</span> <span class="keyword2">where</span>
+  <span class="string">&quot;beval3_shortcircuit st BTrue = True&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;beval3_shortcircuit st BFalse = False&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;beval3_shortcircuit st (BEq a1 a2) = (aeval3 st a1 = aeval3 st a2)&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;beval3_shortcircuit st (BLe a1 a2) = (aeval3 st a1 &le; aeval3 st a2)&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;beval3_shortcircuit st (BNot b1) = (&not; beval3_shortcircuit st b1)&quot;</span>
+  <span class="delimiter">|</span> <span class="string">&quot;beval3_shortcircuit st (BAnd b1 b2) = (if beval3_shortcircuit st b1 then beval3_shortcircuit st b2 else False)&quot;</span>
+
+<span class="command">theorem</span> short_circuit<span class="delimiter">:</span> <span class="string">&quot;beval3 st b = beval3_shortcircuit st b&quot;</span>
+<span class="command">by</span> <span class="delimiter">(</span>induct b<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+
+<span class="comment">(* Exercise: 4 stars, optional (add_for_loop) *)</span>
+<span class="comment">(* Omitted *)</span>
+
+<span class="command">end</span>
+
+</pre>
+
+</div>
+</body>
+</html>

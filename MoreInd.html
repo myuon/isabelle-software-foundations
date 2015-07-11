@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>Theory MoreInd (Isabelle2014: August 2014)</title>
+<link media="all" rel="stylesheet" type="text/css" href="isabelle.css"/>
+</head>
+
+<body>
+<div class="head"><h1>Theory MoreInd</h1>
+
+<span class="command">theory</span> <span class="name">MoreInd</span><br/>
+<span class="keyword">imports</span> <a href="Prop.html"><span class="name">Prop</span></a><br/>
+
+</div>
+<div class="source">
+<pre><span class="command">theory</span> MoreInd
+<span class="keyword2">imports</span> Main Prop
+<span class="keyword2">begin</span>
+
+<span class="command">section</span> <span class="verbatim">{* MoreInd *}</span>
+<span class="command">subsection</span> <span class="verbatim">{* Induction Principles *}</span>
+
+<span class="command">thm</span> nat_induct
+  <span class="comment">(* ==&gt; ?P 0 ==&gt; (!!n. ?P n ==&gt; ?P (Suc n)) ==&gt; ?P ?n *)</span>
+
+<span class="command">theorem</span> mult_0_r&#39;<span class="delimiter">:</span> <span class="string">&quot;!!n::nat. n * 0 = 0&quot;</span>
+<span class="command">apply</span> <span class="delimiter">(</span>induct_tac n<span class="delimiter">)</span>
+<span class="command">apply</span> <span class="delimiter">(</span>simp<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+<span class="command">done</span>
+
+<span class="comment">(* Exercise: 2 stars, optional (plus_one_r&#39;) *)</span>
+<span class="command">theorem</span> plus_one_r&#39;<span class="delimiter">:</span> <span class="string">&quot;!!n::nat. n + 1 = Suc n&quot;</span> <span class="command">by</span> simp
+
+<span class="command">datatype</span> yesno <span class="delimiter">=</span> yes <span class="delimiter">|</span> no
+
+<span class="command">thm</span> yesno.induct
+  <span class="comment">(* ==&gt; ?P yes ==&gt; ?P no ==&gt; ?P ?yesno *)</span>
+
+<span class="comment">(* Exercise: 1 star, optional (rgb) *)</span>
+<span class="command">datatype</span> rgb <span class="delimiter">=</span> red <span class="delimiter">|</span> green <span class="delimiter">|</span> blue
+
+<span class="command">thm</span> rgb.induct
+  <span class="comment">(* ==&gt; ?P red ==&gt; ?P green ==&gt; ?P blue ==&gt; ?P ?rgb *)</span>
+
+<span class="command">datatype</span> natlist <span class="delimiter">=</span> nnil <span class="delimiter">|</span> ncons nat natlist
+
+<span class="command">thm</span> natlist.inducts
+  <span class="comment">(* ==&gt; ?P nnil ==&gt; (!!nat natlist. ?P natlist ==&gt; ?P (ncons nat natlist)) ==&gt; ?P ?natlist *)</span>
+
+<span class="comment">(* Exercise: 1 star, optional (natlist1) *)</span>
+<span class="command">datatype</span> natlist1 <span class="delimiter">=</span> nnil1 <span class="delimiter">|</span> nsnoc1 natlist nat
+
+<span class="command">thm</span> natlist1.inducts
+  <span class="comment">(* ==&gt; ?P nnil1 ==&gt; (!!natlist nat. ?P (nsnoc1 natlist nat)) ==&gt; ?P ?natlist1.0 *)</span>
+
+<span class="comment">(* Exercise: 1 star, optional (byntree_ind) *)</span>
+<span class="command">datatype</span> byntree <span class="delimiter">=</span> bempty <span class="delimiter">|</span> bleaf yesno <span class="delimiter">|</span> nbranch yesno byntree byntree
+
+<span class="command">thm</span> byntree.inducts
+  <span class="comment">(* ==&gt; ?P bempty ==&gt; (!!yesno. ?P (bleaf yesno)) ==&gt; (!!yesno byntree1 byntree2. ?P byntree1 ==&gt;
+         ?P byntree2 ==&gt; ?P (nbranch yesno byntree1 byntree2)) ==&gt; ?P ?byntree *)</span>
+
+<span class="comment">(* Exercise: 1 star, optional (ex_set) *)</span>
+<span class="command">datatype</span> ExSet <span class="delimiter">=</span> con1 bool <span class="delimiter">|</span> con2 nat ExSet
+
+<span class="command">thm</span> ExSet.inducts
+  <span class="comment">(* ==&gt; (!!bool. ?P (con1 bool)) ==&gt; (!!nat ExSet. ?P ExSet ==&gt; ?P (con2 nat ExSet)) ==&gt; ?P ?ExSet *)</span>
+
+<span class="command">datatype</span> <span class="tfree">&#39;a</span> list&#39; <span class="delimiter">=</span> nil <span class="delimiter">|</span> cons <span class="tfree">&#39;a</span> <span class="string">&quot;&#39;a list&quot;</span>
+
+<span class="command">thm</span> list&#39;.inducts
+  <span class="comment">(* ==&gt; ?P nil ==&gt; (!!a list. ?P list ==&gt; ?P (cons a list)) ==&gt; ?P ?list *)</span>
+
+<span class="comment">(* Exercise: 1 star, optional (tree) *)</span>
+<span class="command">datatype</span> <span class="tfree">&#39;a</span> tree <span class="delimiter">=</span> leaf <span class="tfree">&#39;a</span> <span class="delimiter">|</span> node <span class="string">&quot;&#39;a tree&quot;</span> <span class="string">&quot;&#39;a tree&quot;</span>
+
+<span class="command">thm</span> tree.inducts
+  <span class="comment">(* ==&gt; (!!a. ?P (leaf a)) ==&gt; (!!tree1 tree2. ?P tree1 ==&gt; ?P tree2 ==&gt; ?P (node tree1 tree2)) ==&gt; ?P ?tree *)</span>
+
+<span class="comment">(* Exercise: 1 star, optional (mytype) *)</span>
+<span class="command">datatype</span> <span class="tfree">&#39;a</span> mytype <span class="delimiter">=</span> constr1 <span class="tfree">&#39;a</span> <span class="delimiter">|</span> constr2 nat <span class="delimiter">|</span> constr3 <span class="string">&quot;&#39;a mytype&quot;</span> nat
+
+<span class="command">thm</span> mytype.inducts
+  <span class="comment">(* ==&gt; (!!a. ?P (constr1 a)) ==&gt; (!!nat. ?P (constr2 nat)) ==&gt; (!!mytype nat. ?P mytype ==&gt; ?P (constr3 mytype nat)) ==&gt; ?P ?mytype *)</span>
+
+<span class="comment">(* Exercise: 1 star, optional (foo) *)</span>
+<span class="command">datatype</span> <span class="delimiter">(</span><span class="tfree">&#39;a</span><span class="delimiter">,</span><span class="tfree">&#39;b</span><span class="delimiter">)</span> foo <span class="delimiter">=</span> bar <span class="tfree">&#39;a</span> <span class="delimiter">|</span> baz <span class="tfree">&#39;b</span> <span class="delimiter">|</span> quux <span class="string">&quot;nat =&gt; (&#39;a,&#39;b) foo&quot;</span>
+
+<span class="command">thm</span> foo.inducts
+  <span class="comment">(* ==&gt; (!!a. ?P (bar a)) ==&gt; (!!b. ?P (baz b)) ==&gt; (!!fun. (!!x. ?P (fun x)) ==&gt; ?P (quux fun)) ==&gt; ?P ?foo *)</span>
+
+<span class="comment">(* Exercise: 1 star, optional (foo&#39;) *)</span>
+<span class="command">datatype</span> <span class="tfree">&#39;a</span> foo&#39; <span class="delimiter">=</span> C1 <span class="string">&quot;&#39;a list&quot;</span> <span class="string">&quot;&#39;a foo&#39;&quot;</span> <span class="delimiter">|</span> C2
+
+<span class="command">thm</span> foo&#39;.inducts
+  <span class="comment">(* ==&gt; (!!list foo&#39;. ?P foo&#39; ==&gt; ?P (C1 list foo&#39;)) ==&gt; ?P C2 ==&gt; ?P ?foo&#39; *)</span>
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Induction Hypotheses *}</span>
+<span class="command">subsubsection</span> <span class="verbatim">{* More on the induction Tactic *}</span>
+
+<span class="comment">(* Exercise: 1 star, optional (plus_explicit_prop) *)</span>
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Generalizing Inductions. *}</span>
+
+<span class="comment">(*
+lemma one_not_beautiful: &quot;!!n :: nat. n = Suc 0 ==&gt; &not; (beautiful n)&quot;
+apply (rule, erule beautiful.cases, auto)
+
+
+lemma one_not_beautiful&#39;: &quot;&not; beautiful 1&quot; sorry
+*)</span>
+
+<span class="command">subsection</span> <span class="verbatim">{* Informal Proofs (Advanced) *}</span>
+<span class="command">subsubsection</span> <span class="verbatim">{* Informal Proofs by Induction *}</span>
+<span class="command">subsubsection</span> <span class="verbatim">{* Induction Over an Inductively Defined Set *}</span>
+<span class="command">subsubsection</span> <span class="verbatim">{* Induction Over an Inductively Defined Proposition *}</span>
+
+<span class="command">subsection</span> <span class="verbatim">{* Optional Material *}</span>
+<span class="command">subsubsection</span> <span class="verbatim">{* Induction Principles in Prop *}</span>
+
+<span class="command">subsection</span> <span class="verbatim">{* Additional Exercises *}</span>
+
+<span class="comment">(* Exercise: 2 stars, optional (foo_ind_principle) *)</span>
+<span class="command">datatype</span> <span class="delimiter">(</span><span class="tfree">&#39;a</span><span class="delimiter">,</span><span class="tfree">&#39;b</span><span class="delimiter">)</span> foo&#39;&#39; <span class="delimiter">=</span> foo1 <span class="tfree">&#39;a</span> <span class="delimiter">|</span> foo2 <span class="tfree">&#39;b</span> <span class="delimiter">|</span> foo3 <span class="string">&quot;(&#39;a,&#39;b) foo&quot;</span>
+
+<span class="command">thm</span> foo&#39;&#39;.inducts
+  <span class="comment">(* ==&gt; (!!a. ?P (foo1 a)) ==&gt; (!!b. ?P (foo2 b)) ==&gt; (!!foo. ?P (foo3 foo)) ==&gt; ?P ?foo&#39;&#39; *)</span>
+
+<span class="comment">(* Exercise: 2 stars, optional (bar_ind_principle) *)</span>
+<span class="command">datatype</span> bar <span class="delimiter">=</span> bar1 nat <span class="delimiter">|</span> bar2 bar <span class="delimiter">|</span> bar3 bool bar
+
+<span class="command">thm</span> bar.inducts
+  <span class="comment">(* ==&gt; (!!nat. ?P (bar1 nat)) ==&gt; (!!bar. ?P bar ==&gt; ?P (bar2 bar)) ==&gt; (!!bool bar. ?P bar ==&gt; ?P (bar3 bool bar)) ==&gt; ?P ?bar *)</span>
+
+<span class="comment">(* Exercise: 2 stars, optional (no_longer_than_ind) *)</span>
+<span class="command">inductive</span> no_longer_than <span class="delimiter">::</span> <span class="string">&quot;&#39;a set =&gt; &#39;a list =&gt; nat =&gt; bool&quot;</span> <span class="keyword2">where</span>
+  nlt_nil<span class="delimiter">:</span> <span class="string">&quot;no_longer_than X [] n&quot;</span>
+  <span class="delimiter">|</span> nlt_cons<span class="delimiter">:</span> <span class="string">&quot;no_longer_than X l n ==&gt; no_longer_than X (x # l) (Suc n)&quot;</span>
+  <span class="delimiter">|</span> nlt_succ<span class="delimiter">:</span> <span class="string">&quot;no_longer_than X l n ==&gt; no_longer_than X l (Suc n)&quot;</span>
+
+<span class="command">thm</span> no_longer_than.inducts
+  <span class="comment">(* ==&gt; no_longer_than ?x1.0 ?x2.0 ?x3.0 ==&gt;
+    (!!X n. ?P X [] n) ==&gt;
+    (!!X l n x. no_longer_than X l n ==&gt; ?P X l n ==&gt; ?P X (x # l) (Suc n)) ==&gt;
+    (!!X l n. no_longer_than X l n ==&gt; ?P X l n ==&gt; ?P X l (Suc n)) ==&gt; ?P ?x1.0 ?x2.0 ?x3.0 *)</span>
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Induction Principles for other Logical Propositions *}</span>
+
+<span class="comment">(*
+inductive eq :: &quot;&#39;a =&gt; &#39;a =&gt; bool&quot; where
+  &quot;eq x x&quot;
+*)</span>
+
+<span class="command">thm</span> eq.inducts
+  <span class="comment">(* ==&gt; Predicate.eq ?x1.0 ?x2.0 ==&gt; (!!x. ?P x x) ==&gt; ?P ?x1.0 ?x2.0 *)</span>
+
+<span class="comment">(* Exercise: 1 star, optional (and_ind_principle) *)</span>
+<span class="command">thm</span> induct_conj<span class="delimiter">(</span>1<span class="delimiter">)</span>
+  <span class="comment">(* ==&gt; ??.HOL.induct_forall (&lambda;x. ??.HOL.induct_conj (?A x) (?B x)) = ??.HOL.induct_conj (??.HOL.induct_forall ?A) (??.HOL.induct_forall ?B) *)</span>
+<span class="command">thm</span> induct_conj<span class="delimiter">(</span>2<span class="delimiter">)</span>
+  <span class="comment">(* ==&gt; ??.HOL.induct_implies ?C (??.HOL.induct_conj ?A ?B) = ??.HOL.induct_conj (??.HOL.induct_implies ?C ?A) (??.HOL.induct_implies ?C ?B) *)</span>
+
+<span class="comment">(* Exercise: 1 star, optional (or_ind_principle) *)</span>
+<span class="comment">(* Exercise: 1 star, optional (False_ind_principle) *)</span>
+
+<span class="command">subsubsection</span> <span class="verbatim">{* Explicit Proof Objects for Induction *}</span>
+
+<span class="command">thm</span> nat.inducts
+  <span class="comment">(* ==&gt; ?P 0 ==&gt; (!!nat. ?P nat ==&gt; ?P (Suc nat)) ==&gt; ?P ?nat *)</span>
+
+<span class="command">lemma</span> even_2x<span class="delimiter">:</span> <span class="string">&quot;!!n :: nat. even n ==&gt; n = 2 * (n div 2)&quot;</span> <span class="command">by</span> auto
+<span class="command">lemma</span> noteven_2x1<span class="delimiter">:</span> <span class="string">&quot;!!n :: nat. &not; (even n) ==&gt; n = 2 * (n div 2) + 1&quot;</span> <span class="command">by</span> presburger
+
+<span class="command">theorem</span> nat_induct2<span class="delimiter">:</span> <span class="string">&quot;P 0 ==&gt; P (Suc 0) ==&gt; (!!n :: nat. P n ==&gt; P (Suc (Suc n))) ==&gt; P n&quot;</span>
+<span class="command">proof</span> <span class="delimiter">(</span>cases <span class="string">&quot;even n&quot;</span><span class="delimiter">)</span>
+  <span class="command">assume</span> <span class="string">&quot;P 0&quot;</span> <span class="string">&quot;P (Suc 0)&quot;</span> <span class="keyword2">and</span> hyp<span class="delimiter">:</span> <span class="string">&quot;!!n. P n ==&gt; P (Suc (Suc n))&quot;</span>
+  <span class="command">{</span>
+    <span class="command">assume</span> <span class="string">&quot;even n&quot;</span>
+    <span class="command">then</span> <span class="command">obtain</span> k <span class="keyword2">where</span> k<span class="delimiter">:</span> <span class="string">&quot;n = 2 * k&quot;</span> <span class="command">using</span> even_2x <span class="delimiter">[</span>of n<span class="delimiter">]</span> <span class="command">by</span> simp
+    <span class="command">have</span> <span class="string">&quot;P (2 * k)&quot;</span>
+      <span class="command">by</span> <span class="delimiter">(</span>induct k<span class="delimiter">,</span> simp<span class="delimiter">,</span> rule <span class="altstring">`P 0`</span><span class="delimiter">,</span> simp<span class="delimiter">,</span> rule hyp<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+    <span class="command">thus</span> <span class="string">&quot;P n&quot;</span> <span class="command">by</span> <span class="delimiter">(</span>simp add<span class="delimiter">:</span> k<span class="delimiter">)</span>
+  <span class="command">}</span>
+  <span class="command">{</span>
+    <span class="command">assume</span> <span class="string">&quot;n mod 2 &ne; 0&quot;</span>
+    <span class="command">then</span> <span class="command">obtain</span> k <span class="keyword2">where</span> k<span class="delimiter">:</span> <span class="string">&quot;n = 2 * k + 1&quot;</span> <span class="command">using</span> noteven_2x1 <span class="delimiter">[</span>of n<span class="delimiter">]</span> <span class="command">by</span> auto
+    <span class="command">have</span> <span class="string">&quot;P (2 * k + 1)&quot;</span>
+      <span class="command">by</span> <span class="delimiter">(</span>induct k<span class="delimiter">,</span> simp<span class="delimiter">,</span> rule <span class="altstring">`P (Suc 0)`</span><span class="delimiter">,</span> simp<span class="delimiter">,</span> rule hyp<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+    <span class="command">thus</span> <span class="string">&quot;P n&quot;</span> <span class="command">by</span> <span class="delimiter">(</span>simp add<span class="delimiter">:</span> k<span class="delimiter">)</span>
+  <span class="command">}</span>
+<span class="command">qed</span>
+
+<span class="command">lemma</span> even_ev&#39;<span class="delimiter">:</span> <span class="string">&quot;even n --&gt; ev n&quot;</span>
+<span class="command">apply</span> <span class="delimiter">(</span>rule nat_induct2<span class="delimiter">,</span> auto<span class="delimiter">)</span>
+<span class="command">apply</span> <span class="delimiter">(</span>rule ev_0<span class="delimiter">,</span> rule ev_SS<span class="delimiter">,</span> simp<span class="delimiter">)</span>
+<span class="command">done</span>
+
+<span class="command">subsubsection</span> <span class="verbatim">{* The Coq Trusted Computing Base *}</span>
+
+<span class="command">end</span>
+
+</pre>
+
+</div>
+</body>
+</html>
