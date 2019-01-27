@@ -25,9 +25,9 @@ translations
   "[x; xs]" == "x;[xs]"
   "[x]" == "x;[]"
 
-value "nil"
+term "nil"
   (* \<Longrightarrow> "nil" :: "'a Poly.list" *)
-value "cons"
+term "cons"
   (* \<Longrightarrow> "cons" :: "'a \<Rightarrow> 'a Poly.list \<Rightarrow> 'a Poly.list" *)
 
 value "cons 2 (cons (1 :: nat) nil)"

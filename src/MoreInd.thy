@@ -29,55 +29,55 @@ thm rgb.induct
 
 datatype natlist = nnil | ncons nat natlist
 
-thm natlist.inducts
+thm natlist.induct
   (* \<Longrightarrow> ?P nnil \<Longrightarrow> (\<And>nat natlist. ?P natlist \<Longrightarrow> ?P (ncons nat natlist)) \<Longrightarrow> ?P ?natlist *)
 
 (* Exercise: 1 star, optional (natlist1) *)
 datatype natlist1 = nnil1 | nsnoc1 natlist nat
 
-thm natlist1.inducts
+thm natlist1.induct
   (* \<Longrightarrow> ?P nnil1 \<Longrightarrow> (\<And>natlist nat. ?P (nsnoc1 natlist nat)) \<Longrightarrow> ?P ?natlist1.0 *)
 
 (* Exercise: 1 star, optional (byntree_ind) *)
 datatype byntree = bempty | bleaf yesno | nbranch yesno byntree byntree
 
-thm byntree.inducts
+thm byntree.induct
   (* \<Longrightarrow> ?P bempty \<Longrightarrow> (\<And>yesno. ?P (bleaf yesno)) \<Longrightarrow> (\<And>yesno byntree1 byntree2. ?P byntree1 \<Longrightarrow>
          ?P byntree2 \<Longrightarrow> ?P (nbranch yesno byntree1 byntree2)) \<Longrightarrow> ?P ?byntree *)
 
 (* Exercise: 1 star, optional (ex_set) *)
 datatype ExSet = con1 bool | con2 nat ExSet
 
-thm ExSet.inducts
+thm ExSet.induct
   (* \<Longrightarrow> (\<And>bool. ?P (con1 bool)) \<Longrightarrow> (\<And>nat ExSet. ?P ExSet \<Longrightarrow> ?P (con2 nat ExSet)) \<Longrightarrow> ?P ?ExSet *)
 
 datatype 'a list' = nil | cons 'a "'a list"
 
-thm list'.inducts
+thm list'.induct
   (* \<Longrightarrow> ?P nil \<Longrightarrow> (\<And>a list. ?P list \<Longrightarrow> ?P (cons a list)) \<Longrightarrow> ?P ?list *)
 
 (* Exercise: 1 star, optional (tree) *)
 datatype 'a tree = leaf 'a | node "'a tree" "'a tree"
 
-thm tree.inducts
+thm tree.induct
   (* \<Longrightarrow> (\<And>a. ?P (leaf a)) \<Longrightarrow> (\<And>tree1 tree2. ?P tree1 \<Longrightarrow> ?P tree2 \<Longrightarrow> ?P (node tree1 tree2)) \<Longrightarrow> ?P ?tree *)
 
 (* Exercise: 1 star, optional (mytype) *)
 datatype 'a mytype = constr1 'a | constr2 nat | constr3 "'a mytype" nat
 
-thm mytype.inducts
+thm mytype.induct
   (* \<Longrightarrow> (\<And>a. ?P (constr1 a)) \<Longrightarrow> (\<And>nat. ?P (constr2 nat)) \<Longrightarrow> (\<And>mytype nat. ?P mytype \<Longrightarrow> ?P (constr3 mytype nat)) \<Longrightarrow> ?P ?mytype *)
 
 (* Exercise: 1 star, optional (foo) *)
 datatype ('a,'b) foo = bar 'a | baz 'b | quux "nat \<Rightarrow> ('a,'b) foo"
 
-thm foo.inducts
+thm foo.induct
   (* \<Longrightarrow> (\<And>a. ?P (bar a)) \<Longrightarrow> (\<And>b. ?P (baz b)) \<Longrightarrow> (\<And>fun. (\<And>x. ?P (fun x)) \<Longrightarrow> ?P (quux fun)) \<Longrightarrow> ?P ?foo *)
 
 (* Exercise: 1 star, optional (foo') *)
 datatype 'a foo' = C1 "'a list" "'a foo'" | C2
 
-thm foo'.inducts
+thm foo'.induct
   (* \<Longrightarrow> (\<And>list foo'. ?P foo' \<Longrightarrow> ?P (C1 list foo')) \<Longrightarrow> ?P C2 \<Longrightarrow> ?P ?foo' *)
 
 subsubsection {* Induction Hypotheses *}
@@ -108,13 +108,13 @@ subsection {* Additional Exercises *}
 (* Exercise: 2 stars, optional (foo_ind_principle) *)
 datatype ('a,'b) foo'' = foo1 'a | foo2 'b | foo3 "('a,'b) foo"
 
-thm foo''.inducts
+thm foo''.induct
   (* \<Longrightarrow> (\<And>a. ?P (foo1 a)) \<Longrightarrow> (\<And>b. ?P (foo2 b)) \<Longrightarrow> (\<And>foo. ?P (foo3 foo)) \<Longrightarrow> ?P ?foo'' *)
 
 (* Exercise: 2 stars, optional (bar_ind_principle) *)
 datatype bar = bar1 nat | bar2 bar | bar3 bool bar
 
-thm bar.inducts
+thm bar.induct
   (* \<Longrightarrow> (\<And>nat. ?P (bar1 nat)) \<Longrightarrow> (\<And>bar. ?P bar \<Longrightarrow> ?P (bar2 bar)) \<Longrightarrow> (\<And>bool bar. ?P bar \<Longrightarrow> ?P (bar3 bool bar)) \<Longrightarrow> ?P ?bar *)
 
 (* Exercise: 2 stars, optional (no_longer_than_ind) *)
@@ -161,17 +161,20 @@ proof (cases "even n")
   assume "P 0" "P (Suc 0)" and hyp: "\<And>n. P n \<Longrightarrow> P (Suc (Suc n))"
   {
     assume "even n"
-    then obtain k where k: "n = 2 * k" using even_2x [of n] by simp
+    then obtain k where k: "n = 2 * k" using even_2x [of n]
+      by auto 
     have "P (2 * k)"
       by (induct k, simp, rule `P 0`, simp, rule hyp, simp)
     thus "P n" by (simp add: k)
   }
   {
-    assume "n mod 2 \<noteq> 0"
-    then obtain k where k: "n = 2 * k + 1" using noteven_2x1 [of n] by auto
+    assume "odd n"
+    then obtain k where k: "n = 2 * k + 1" using noteven_2x1 [of n]
+      by (meson even_iff_mod_2_eq_zero)
     have "P (2 * k + 1)"
       by (induct k, simp, rule `P (Suc 0)`, simp, rule hyp, simp)
-    thus "P n" by (simp add: k)
+    thus "P n"
+      by (simp add: k)
   }
 qed
 

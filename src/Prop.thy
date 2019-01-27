@@ -1,11 +1,11 @@
 theory Prop
-imports Main
+  imports Main
 begin
 
 section {* Prop *}
 subsection {* From Boolean Functions to Propositions *}
 
-abbreviation "even n \<equiv> (n mod 2 = 0)"
+(* abbreviation "even n \<equiv> (n mod 2 = 0)" *)
 
 subsection {* Inductively Defined Propositions *}
 
@@ -130,15 +130,13 @@ by (metis inc.simps Suc_eq_numeral Suc_numeral add_One numeral_One old.nat.disti
 lemma ev_in: "ev n \<Longrightarrow> n mod 2 = 0"
 by (erule ev.inducts, simp add: ev.simps, simp)
 
-theorem ev_ev_ev: "\<forall>n m. ev (n+m) \<longrightarrow> ev n \<longrightarrow> ev m"
-proof auto
-  fix n :: nat and m :: nat
-  assume a1: "ev n"
-  assume "ev (n + m)"
-  hence "ev (m + n)" by (simp add: add.commute)
-  hence "even m" using a1 by (metis (no_types) ev_in mod_add_right_eq monoid_add_class.add.right_neutral)
-  thus "ev m" by (metis double.simps double_even mod_eqD monoid_add_class.add.left_neutral mult.commute mult_2)
-qed
+lemma ev_destruct: "ev n \<Longrightarrow> n = 0 \<or> (\<exists>m. n = Suc (Suc m) \<and> ev m)"
+  apply (induct rule: ev.induct, simp, simp)
+  done
+
+theorem ev_ev_ev: "ev n \<Longrightarrow> ev (n+m) \<Longrightarrow> ev m"
+  apply (induct rule: ev.induct, simp, simp)
+  using SSev_even by blast
 
 (* Exercise: 3 stars, optional (ev_plus_plus) *)
 theorem ev_plus_plus : "\<forall>n m p. ev (n+m) \<longrightarrow> ev (n+p) \<longrightarrow> ev (m+p)"

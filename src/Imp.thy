@@ -43,10 +43,8 @@ lemma test_optimize_0plus:
 by (subst Suc_1 [symmetric], subst optimize_0plus.simps(3), simp)
 
 theorem optimize_0plus_sound: "aeval (optimize_0plus a) = aeval a"
-apply (rule aexp.inducts, auto)
-apply (case_tac aexp1, auto)
-apply (case_tac nat, auto)
-done
+  apply (induct rule: optimize_0plus.induct, auto)
+  done
 
 subsection {* Coq Automation *}
 
@@ -84,9 +82,9 @@ fun optimize_0plus_b :: "bexp \<Rightarrow> bexp" where
   | "optimize_0plus_b (BAnd b1 b2) = BAnd b1 b2"
 
 theorem optimize_0plus_b_sound: "beval (optimize_0plus_b b) = beval b"
-apply (rule bexp.inducts, auto)
-apply (case_tac bexp1, auto)+
-done
+  apply (induct rule: optimize_0plus_b.induct)
+  apply auto
+  done
 
 (* Exercise: 4 stars, optional (optimizer) *)
 

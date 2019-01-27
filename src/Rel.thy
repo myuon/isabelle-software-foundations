@@ -21,7 +21,7 @@ term "next_nat :: nat relation"
 theorem next_nat_partial_function: "partial_function' next_nat"
 unfolding partial_function'_def by simp
 
-theorem le_not_a_partial_function: "\<not> (partial_function' (op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool))"
+theorem le_not_a_partial_function: "\<not> (partial_function' ((\<le>) :: nat \<Rightarrow> nat \<Rightarrow> bool))"
 unfolding partial_function'_def by auto
 
 (* Exercise: 2 stars, optional *)
@@ -33,16 +33,16 @@ unfolding partial_function'_def by auto
 definition reflexive :: "'a relation \<Rightarrow> bool" where
   "reflexive R \<equiv> \<forall>a. R a a"
 
-theorem le_reflexive: "reflexive (op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool)"
+theorem le_reflexive: "reflexive ((\<le>) :: nat \<Rightarrow> nat \<Rightarrow> bool)"
 unfolding reflexive_def by simp
 
 definition transitive :: "'a relation \<Rightarrow> bool" where
   "transitive R \<equiv> \<forall>a b c. R a b \<longrightarrow> R b c \<longrightarrow> R a c"
 
-theorem le_trans: "transitive (op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool)"
+theorem le_trans: "transitive ((\<le>) :: nat \<Rightarrow> nat \<Rightarrow> bool)"
 unfolding transitive_def by simp
 
-theorem lt_trans: "transitive (op < :: nat \<Rightarrow> nat \<Rightarrow> bool)"
+theorem lt_trans: "transitive ((<) :: nat \<Rightarrow> nat \<Rightarrow> bool)"
 unfolding transitive_def by simp
 
 (* Exercise: 2 stars, optional *)
@@ -64,7 +64,7 @@ definition symmetric :: "'a relation \<Rightarrow> bool" where
   "symmetric R \<equiv> \<forall>a b. R a b \<longrightarrow> R b a"
 
 (* Exercise: 2 stars, optional *)
-theorem le_not_symmetric: "\<not> (symmetric (op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool))"
+theorem le_not_symmetric: "\<not> (symmetric ((\<le>) :: nat \<Rightarrow> nat \<Rightarrow> bool))"
 unfolding symmetric_def by auto
 
 definition antisymmetric where
@@ -72,7 +72,7 @@ definition antisymmetric where
 
 (* Exercise: 2 stars, optional *)
 
-theorem le_antisymmetric: "antisymmetric (op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool)"
+theorem le_antisymmetric: "antisymmetric ((\<le>) :: nat \<Rightarrow> nat \<Rightarrow> bool)"
 unfolding antisymmetric_def by auto
 
 (* Exercise: 2 stars, optional *)
@@ -88,7 +88,7 @@ definition order where
 definition preorder where
   "preorder R \<equiv> reflexive R \<and> transitive R"
 
-theorem le_order: "order (op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool)"
+theorem le_order: "order ((\<le>) :: nat \<Rightarrow> nat \<Rightarrow> bool)"
 unfolding order_def reflexive_def antisymmetric_def transitive_def by auto
 
 subsection {* Reflexive, Transitive Closure *}
@@ -116,11 +116,11 @@ proof auto
   have p: "\<And>a :: nat. ?R n (n + a)"
     apply (induct_tac a, auto simp add: rt_refl)
     using next_nat_closure_is_le_right [of n] by auto
-  show "rt[ \<lambda>x. op = (Suc x) ] n m"
+  show "rt[ \<lambda>x. (=) (Suc x) ] n m"
     using p [of "m - n"] mn by auto
 next
   fix n :: nat and m
-  assume "rt[ \<lambda>x. op = (Suc x) ] n m"
+  assume "rt[ \<lambda>x. (=) (Suc x) ] n m"
   thus "n \<le> m"
     by (rule_tac clos_refl_trans.induct [of n m], auto)
 qed
